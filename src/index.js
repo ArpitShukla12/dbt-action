@@ -9,7 +9,7 @@ import {auth} from "./utils/index.js";
 dotenv.config();
 
 const GITHUB_TOKEN = core.getInput("GITHUB_TOKEN") || process.env.GITHUB_TOKEN;
-
+//Tryiing 
 async function run() {
     const timeStart = Date.now();
     const {context} = github;
