@@ -124,6 +124,8 @@ ${getImageURL(
       };
     });
   console.log("At line 126 inside getDownstreamAssets function", response);
+  console.log(response.entities[0].attributes);
+  console.log(response.entities[1].attributes);
   if (response.error) return response;
 
   return response;
