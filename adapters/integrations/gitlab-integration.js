@@ -488,6 +488,8 @@ ${content}`;
   async renderDownstreamAssetsComment({ asset, downstreamAssets }) {
     //Done
     console.log("At line 474 inside renderDownstreamAssetsComment");
+    console.log("Assets :", asset);
+    console.log("Downstream Assets: ", downstreamAssets);
     let impactedData = downstreamAssets.entities.map(
       //here changed from downstreamAssets.map to downstreamAssets.entities.map
       ({ displayText, guid, typeName, attributes, meanings }) => {
@@ -549,6 +551,7 @@ ${content}`;
         ];
       }
     );
+    console.log("Rows: ", rows);
     //changed downstreamAssets.length to downstreamAssets.entities.length
     const comment = `### ${getConnectorImage(
       asset.attributes.connectorName
