@@ -488,7 +488,8 @@ ${content}`;
   async renderDownstreamAssetsComment({ asset, downstreamAssets }) {
     //Done
     console.log("At line 474 inside renderDownstreamAssetsComment");
-    let impactedData = downstreamAssets.map(
+    let impactedData = downstreamAssets.entities.map(
+      //here changed from downstreamAssets.map to downstreamAssets.entities.map
       ({ displayText, guid, typeName, attributes, meanings }) => {
         let readableTypeName = typeName
           .toLowerCase()
