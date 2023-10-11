@@ -345,8 +345,15 @@ ${content}`;
     //Complete
     console.log("At line 344 Inside getChangedFiles");
     const { CI_PROJECT_PATH, CI_MERGE_REQUEST_IID } = process.env;
-
+    console.log(CI_PROJECT_PATH, CI_MERGE_REQUEST_IID);
+    var temp = await gitlab.MergeRequests.allDiffs(
+      //Changed the function name
+      CI_PROJECT_PATH,
+      CI_MERGE_REQUEST_IID
+    );
+    console.log(temp);
     const { changes, diff_refs } = await gitlab.MergeRequests.allDiffs(
+      //Changed the function name
       CI_PROJECT_PATH,
       CI_MERGE_REQUEST_IID
     );
