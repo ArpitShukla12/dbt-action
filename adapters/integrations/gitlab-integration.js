@@ -563,10 +563,7 @@ ${content}`;
         : ""
     }
 
-    <details><summary><b>${
-      downstreamAssets.entityCount
-    } downstream assets 👇</b></summary><br/>
-    // **${downstreamAssets.entityCount} downstream assets** 👇
+    <strong>${downstreamAssets.entityCount} downstream assets</strong> 👇
     Name | Type | Description | Owners | Terms | Source URL
     --- | --- | --- | --- | --- | ---
     ${rows
@@ -574,7 +571,7 @@ ${content}`;
         row.map((i) => i.replace(/\|/g, "•").replace(/\n/g, "")).join(" | ")
       )
       .join("\n")}
-      </details>
+      
     ${getImageURL(
       "atlan-logo",
       15,
