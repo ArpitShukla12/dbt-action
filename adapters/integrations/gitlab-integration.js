@@ -41,13 +41,12 @@ export default class GitLabIntegration extends IntegrationInterface {
       throw { message: "Wrong API Token" };
     console.log("CI_PROJECT_PATH", CI_PROJECT_PATH);
     console.log("CI_MERGE_REQUEST_IID", CI_MERGE_REQUEST_IID);
-    const { state, web_url } = await gitlab.MergeRequests.show(
+    const { state, web_url, source_branch } = await gitlab.MergeRequests.show(
       CI_PROJECT_PATH,
       CI_MERGE_REQUEST_IID
     );
     console.log("At line 47", state, web_url, source_branch);
     let total_assets = 0;
-    var source_branch;
     if (state === "opened") {
       total_assets = await this.printDownstreamAssets({
         gitlab,
@@ -347,7 +346,7 @@ ${content}`;
     console.log("At line 344 Inside getChangedFiles");
     const { CI_PROJECT_PATH, CI_MERGE_REQUEST_IID } = process.env;
 
-    const { changes, diff_refs } = await gitlab.MergeRequests.changes(
+    const { changes, diff_refs } = await gitlab.MergeRequests.allDiffs(
       CI_PROJECT_PATH,
       CI_MERGE_REQUEST_IID
     );
