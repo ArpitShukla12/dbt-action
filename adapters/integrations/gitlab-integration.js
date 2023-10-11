@@ -516,6 +516,8 @@ ${content}`;
         ];
       }
     );
+
+    console.log("Impacted Data", impactedData);
     console.log("At line 502 in renderDownstreamAsset");
     impactedData = impactedData.sort((a, b) => a[3].localeCompare(b[3])); // Sort by typeName
     impactedData = impactedData.sort((a, b) => a[2].localeCompare(b[2])); // Sort by connectorName
@@ -558,7 +560,7 @@ ${content}`;
         : ""
     }
     
-    **${downstreamAssets.entities.length} downstream assets** 👇
+    **${downstreamAssets.entityCount} downstream assets** 👇
     Name | Type | Description | Owners | Terms | Source URL
     --- | --- | --- | --- | --- | ---
     ${rows
