@@ -91,15 +91,15 @@ export default class GitLabIntegration extends IntegrationInterface {
         headSHA,
       });
       console.log("At line 88");
-      const environments = getGitLabEnvironments();
-      console.log("At line 90", environments);
+      // const environments = getGitLabEnvironments();
+      // console.log("At line 90", environments);
       let environment = null;
-      for (const [baseBranchName, environmentName] of environments) {
-        if (baseBranchName === source_branch) {
-          environment = environmentName;
-          break;
-        }
-      }
+      // for (const [baseBranchName, environmentName] of environments) {
+      //   if (baseBranchName === source_branch) {
+      //     environment = environmentName;
+      //     break;
+      //   }
+      // }
       console.log("At line 98", environment);
       const asset = await getAsset({
         //Complete
