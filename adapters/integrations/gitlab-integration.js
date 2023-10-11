@@ -41,10 +41,14 @@ export default class GitLabIntegration extends IntegrationInterface {
       throw { message: "Wrong API Token" };
     console.log("CI_PROJECT_PATH", CI_PROJECT_PATH);
     console.log("CI_MERGE_REQUEST_IID", CI_MERGE_REQUEST_IID);
-    const { state, web_url, source_branch } = await gitlab.MergeRequests.show(
+    var temp5 = await gitlab.MergeRequests.show(
       CI_PROJECT_PATH,
       CI_MERGE_REQUEST_IID
     );
+    console.log(temp5);
+    const { state, web_url, source_branch, diff_refs } =
+      await gitlab.MergeRequests.show(CI_PROJECT_PATH, CI_MERGE_REQUEST_IID);
+    console.log("Diff_refs", diff_refs);
     console.log("At line 47", state, web_url, source_branch);
     let total_assets = 0;
     if (state === "opened") {
@@ -72,6 +76,20 @@ export default class GitLabIntegration extends IntegrationInterface {
     // Implementation for printing impact on GitHub
     // Use this.token to access the token
     console.log("At line 74 inside printDownstreamAssets");
+    gitlab.MergeRequests.show(projectId, mergeRequestId)
+      .then((response) => {
+        const diffRefs = response.data.diff_refs;
+
+        if (diffRefs) {
+          const headSha = diffRefs.head_sha;
+          console.log(`Head SHA of the merge request: ${headSha}`);
+        } else {
+          console.log("Diff refs not available for this merge request.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching merge request details:", error);
+      });
     const changedFiles = await this.getChangedFiles({ gitlab }); //Complete
     console.log("At line 75", changedFiles);
     let comments = ``;
@@ -346,11 +364,6 @@ ${content}`;
     console.log("At line 344 Inside getChangedFiles");
     const { CI_PROJECT_PATH, CI_MERGE_REQUEST_IID } = process.env;
     console.log(CI_PROJECT_PATH, CI_MERGE_REQUEST_IID);
-    var temp2 = await gitlab.MergeRequests.changes(
-      CI_PROJECT_PATH,
-      CI_MERGE_REQUEST_IID
-    );
-    console.log("Temp2 :", temp2);
     var temp = await gitlab.MergeRequests.allDiffs(
       //Changed the function name
       CI_PROJECT_PATH,
