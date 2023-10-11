@@ -121,7 +121,7 @@ export default class GitLabIntegration extends IntegrationInterface {
         (i) => i.status === "modified"
       ).length;
       console.log("At line 118", totalModifiedFiles);
-      const { guid } = asset.attributes.sqlAsset;
+      const { guid } = asset; //Changed code over here
       const timeStart = Date.now();
       const downstreamAssets = await getDownstreamAssets(
         //Done
