@@ -262,27 +262,27 @@ This pull request has been added as a resource to all the assets modified. ✅
 
     if (response?.status === 401) {
       //Complete
-      await this.createIssueComment(
+      await this.createIssueComment({
         gitlab,
-        `We couldn't connect to your Atlan Instance, please make sure to set the valid Atlan Bearer Token as \`ATLAN_API_TOKEN\` in your .gitlab-ci.yml file.
+        content: `We couldn't connect to your Atlan Instance, please make sure to set the valid Atlan Bearer Token as \`ATLAN_API_TOKEN\` in your .gitlab-ci.yml file.
 
-Atlan Instance URL: ${ATLAN_INSTANCE_URL}`
-      );
+Atlan Instance URL: ${ATLAN_INSTANCE_URL}`,
+      });
       return false;
     }
 
     if (response === undefined) {
-      await this.createIssueComment(
+      await this.createIssueComment({
         gitlab,
-        `We couldn't connect to your Atlan Instance, please make sure to set the valid Atlan Instance URL as \`ATLAN_INSTANCE_URL\` in your .gitlab-ci.yml file.
+        content: `We couldn't connect to your Atlan Instance, please make sure to set the valid Atlan Instance URL as \`ATLAN_INSTANCE_URL\` in your .gitlab-ci.yml file.
 
 Atlan Instance URL: ${ATLAN_INSTANCE_URL}
 
 Make sure your Atlan Instance URL is set in the following format.
 \`https://tenant.atlan.com\`
 
-`
-      );
+`,
+      });
       return false;
     }
     console.log("Completed authOfIntegration");
@@ -547,7 +547,7 @@ ${content}`;
         ];
       }
     );
-
+    //changed downstreamAssets.length to downstreamAssets.entities.length
     const comment = `### ${getConnectorImage(
       asset.attributes.connectorName
     )} [${asset.displayText}](${ATLAN_INSTANCE_URL}/assets/${
@@ -557,8 +557,8 @@ ${content}`;
         ? getCertificationImage(asset.attributes.certificateStatus)
         : ""
     }
-
-    **${downstreamAssets.length} downstream assets** 👇
+    
+    **${downstreamAssets.entities.length} downstream assets** 👇
     Name | Type | Description | Owners | Terms | Source URL
     --- | --- | --- | --- | --- | ---
     ${rows
