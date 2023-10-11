@@ -280,7 +280,7 @@ Make sure your Atlan Instance URL is set in the following format.
       );
       return false;
     }
-
+    console.log("Completed authOfIntegration");
     return true;
   }
 
