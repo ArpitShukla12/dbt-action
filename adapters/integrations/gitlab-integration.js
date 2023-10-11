@@ -511,7 +511,7 @@ ${content}`;
           meanings
             .map(
               ({ displayText, termGuid }) =>
-                `[${displayText}](${ATLAN_INSTANCE_URL}/assets/${termGuid}?utm_source=dbt_gitlab_action)`
+                `[${displayText}](${ATLAN_INSTANCE_URL}/assets/${termGuid}?utm_source=dbt_github_action)`
             )
             ?.join(", ") || " ",
           attributes?.sourceURL || "",
@@ -542,7 +542,7 @@ ${content}`;
             : "";
 
         return [
-          `${connectorImage} [${displayText}](${ATLAN_INSTANCE_URL}/assets/${guid}?utm_source=dbt_gitlab_action) ${certificationImage}`,
+          `${connectorImage} [${displayText}](${ATLAN_INSTANCE_URL}/assets/${guid}?utm_source=dbt_github_action) ${certificationImage}`,
           `\`${typeName}\``,
           description,
           owners.join(", ") || " ",
@@ -557,7 +557,7 @@ ${content}`;
       asset.attributes.connectorName
     )} [${asset.displayText}](${ATLAN_INSTANCE_URL}/assets/${
       asset.guid
-    }?utm_source=dbt_gitlab_action) ${
+    }?utm_source=dbt_github_action) ${
       asset.attributes?.certificateStatus
         ? getCertificationImage(asset.attributes.certificateStatus)
         : ""
@@ -578,7 +578,7 @@ ${content}`;
       15
     )} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${
       asset.guid
-    }?utm_source=dbt_gitlab_action)`;
+    }?utm_source=dbt_github_action)`;
     console.log("At line 560 Completed renderDownstream");
     return comment;
   }
