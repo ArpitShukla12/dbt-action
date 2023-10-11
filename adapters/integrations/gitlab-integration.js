@@ -39,7 +39,8 @@ export default class GitLabIntegration extends IntegrationInterface {
     if (!(await this.authIntegration({ gitlab })))
       //Done
       throw { message: "Wrong API Token" };
-
+    console.log("CI_PROJECT_PATH", CI_PROJECT_PATH);
+    console.log("CI_MERGE_REQUEST_IID", CI_MERGE_REQUEST_IID);
     const { state, web_url, source_branch } = await gitlab.MergeRequests.show(
       CI_PROJECT_PATH,
       CI_MERGE_REQUEST_IID
