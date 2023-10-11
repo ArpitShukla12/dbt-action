@@ -351,6 +351,8 @@ ${content}`;
       CI_MERGE_REQUEST_IID
     );
     console.log("At line 351 Inside getChangedFiles");
+    console.log("Changes", changes);
+    console.log(typeof changes);
     var changedFiles = changes
       .map(({ new_path, old_path }) => {
         try {
