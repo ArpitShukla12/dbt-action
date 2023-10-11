@@ -172,7 +172,7 @@ ${comments}`;
       await this.createIssueComment({
         //Complete
         gitlab,
-        comments,
+        content: comments,
         comment_id: existingComment?.id,
       });
 
