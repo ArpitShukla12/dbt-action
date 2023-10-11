@@ -55,6 +55,7 @@ export default class GitLabIntegration extends IntegrationInterface {
       total_assets = await this.printDownstreamAssets({
         gitlab,
         source_branch,
+        diff_refs,
       });
     } else if (state === "merged") {
       total_assets = await this.setResourceOnAsset({
@@ -71,26 +72,12 @@ export default class GitLabIntegration extends IntegrationInterface {
       });
   }
 
-  async printDownstreamAssets({ gitlab, source_branch }) {
+  async printDownstreamAssets({ gitlab, source_branch, diff_refs }) {
     //Done
     // Implementation for printing impact on GitHub
     // Use this.token to access the token
     console.log("At line 74 inside printDownstreamAssets");
-    gitlab.MergeRequests.show(projectId, mergeRequestId)
-      .then((response) => {
-        const diffRefs = response.data.diff_refs;
-
-        if (diffRefs) {
-          const headSha = diffRefs.head_sha;
-          console.log(`Head SHA of the merge request: ${headSha}`);
-        } else {
-          console.log("Diff refs not available for this merge request.");
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching merge request details:", error);
-      });
-    const changedFiles = await this.getChangedFiles({ gitlab }); //Complete
+    const changedFiles = await this.getChangedFiles({ gitlab, diff_refs }); //Complete
     console.log("At line 75", changedFiles);
     let comments = ``;
     let totalChangedFiles = 0;
@@ -358,26 +345,24 @@ ${content}`;
     return sendSegmentEvent(action, raw);
   }
 
-  async getChangedFiles({ gitlab }) {
+  async getChangedFiles({ gitlab, diff_refs }) {
     //Done
     //Complete
     console.log("At line 344 Inside getChangedFiles");
     const { CI_PROJECT_PATH, CI_MERGE_REQUEST_IID } = process.env;
     console.log(CI_PROJECT_PATH, CI_MERGE_REQUEST_IID);
-    var temp = await gitlab.MergeRequests.allDiffs(
+    var changes = await gitlab.MergeRequests.allDiffs(
       //Changed the function name
       CI_PROJECT_PATH,
       CI_MERGE_REQUEST_IID
     );
-    console.log(temp);
-    const { changes, diff_refs } = await gitlab.MergeRequests.allDiffs(
-      //Changed the function name
-      CI_PROJECT_PATH,
-      CI_MERGE_REQUEST_IID
-    );
+    // const { changes, diff_refs } = await gitlab.MergeRequests.allDiffs(
+    //   //Changed the function name
+    //   CI_PROJECT_PATH,
+    //   CI_MERGE_REQUEST_IID
+    // );
     console.log("At line 351 Inside getChangedFiles");
     console.log("Changes", changes);
-    console.log(typeof changes);
     var changedFiles = changes
       .map(({ new_path, old_path }) => {
         try {
