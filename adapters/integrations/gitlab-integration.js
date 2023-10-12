@@ -563,7 +563,7 @@ ${content}`;
         : ""
     }
 
-    <strong>${downstreamAssets.entityCount} downstream assets</strong> 👇
+    __${downstreamAssets.entityCount} downstream assets__ 👇
     Name | Type | Description | Owners | Terms | Source URL
     --- | --- | --- | --- | --- | ---
     ${rows
