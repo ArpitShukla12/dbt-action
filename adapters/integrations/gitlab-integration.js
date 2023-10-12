@@ -564,7 +564,7 @@ ${content}`;
         : ""
     }
     
-    **${downstreamAssets.entityCount} downstream assets** 👇`;
+    ** ${downstreamAssets.entityCount} downstream assets ** 👇`;
 
     console.log("Comment:", comment);
     return comment;
