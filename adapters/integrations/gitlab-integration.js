@@ -553,17 +553,18 @@ ${content}`;
     );
     console.log("Rows: ", rows);
     //changed downstreamAssets.length to downstreamAssets.entities.length
+
     const comment = `### ${getConnectorImage(
       asset.attributes.connectorName
     )} [${asset.displayText}](${ATLAN_INSTANCE_URL}/assets/${
       asset.guid
-    }?utm_source=dbt_gitlab_action) ${
+    }?utm_source=dbt_github_action) ${
       asset.attributes?.certificateStatus
         ? getCertificationImage(asset.attributes.certificateStatus)
         : ""
     }
-
-    __${downstreamAssets.entityCount} downstream assets__ 👇
+          
+    **${downstreamAssets.entityCount} downstream assets** 👇
     Name | Type | Description | Owners | Terms | Source URL
     --- | --- | --- | --- | --- | ---
     ${rows
@@ -571,15 +572,15 @@ ${content}`;
         row.map((i) => i.replace(/\|/g, "•").replace(/\n/g, "")).join(" | ")
       )
       .join("\n")}
-      
+    
     ${getImageURL(
       "atlan-logo",
       15,
       15
     )} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${
       asset.guid
-    }?utm_source=dbt_gitlab_action)`;
-    console.log("At line 560 Completed renderDownstream");
+    }?utm_source=dbt_github_action)`;
+
     return comment;
   }
 }
