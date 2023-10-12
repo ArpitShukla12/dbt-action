@@ -465,7 +465,7 @@ ${content}`;
     return comments.find(
       // Why here we have hardocded value? What should be over here inplace of this.
       (comment) =>
-        comment.author.username === "Jaagrav" &&
+        comment.author.username === "arpit.shukla1" &&
         comment.body.includes(
           "<!-- ActionCommentIdentifier: atlan-dbt-action -->"
         )
