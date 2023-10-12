@@ -167,7 +167,7 @@ Here is your downstream impact analysis for **${totalChangedFiles} ${
 ${comments}`;
     console.log("At line 163 in printDownstreamAssets");
     const existingComment = await this.checkCommentExists({ gitlab }); //Complete
-    console.log("At line 165 after checkCommentExists", existingComment);
+    console.log("At line 165 after checkCommentExists", existingComment?.id);
     if (totalChangedFiles > 0)
       await this.createIssueComment({
         //Complete
