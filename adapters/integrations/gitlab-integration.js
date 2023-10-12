@@ -554,9 +554,21 @@ ${content}`;
     console.log("Rows: ", rows);
     //changed downstreamAssets.length to downstreamAssets.entities.length
 
-    const comment = `**${downstreamAssets.entityCount} downstream assets** 👇`;
+    const comment = `### ${getConnectorImage(asset.attributes.connectorName)} [${
+      asset.displayText
+  }](${ATLAN_INSTANCE_URL}/assets/${asset.guid}?utm_source=dbt_github_action) ${
+      asset.attributes?.certificateStatus
+          ? getCertificationImage(asset.attributes.certificateStatus)
+          : ""
+  }
+      
+**${downstreamAssets.length} downstream assets** 👇
+Name | Type | Description | Owners | Terms | Source URL
+--- | --- | --- | --- | --- | ---
+${rows.map((row) => row.map(i => i.replace(/\|/g, "•").replace(/\n/g, "")).join(" | ")).join("\n")}
 
-    console.log("Comment:", comment);
-    return comment;
+${getImageURL("atlan-logo", 15, 15)} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${asset.guid}?utm_source=dbt_github_action)`;
+
+  return comment
   }
 }
