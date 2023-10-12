@@ -563,8 +563,9 @@ ${content}`;
         ? getCertificationImage(asset.attributes.certificateStatus)
         : ""
     }
-    
-    ** ${downstreamAssets.entityCount} downstream assets ** 👇`;
+
+    <strong>${downstreamAssets.entityCount} downstream assets</strong> 👇
+    **${downstreamAssets.entityCount} downstream assets** 👇`;
 
     console.log("Comment:", comment);
     return comment;
