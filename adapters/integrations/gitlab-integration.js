@@ -563,6 +563,7 @@ ${content}`;
         ? getCertificationImage(asset.attributes.certificateStatus)
         : ""
     }
+    
     **${downstreamAssets.entityCount} downstream assets** 👇
     Name | Type | Description | Owners | Terms | Source URL
     --- | --- | --- | --- | --- | ---
@@ -579,7 +580,7 @@ ${content}`;
     )} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${
       asset.guid
     }?utm_source=dbt_github_action)`;
-
+    console.log("Comment:", comment);
     return comment;
   }
 }
