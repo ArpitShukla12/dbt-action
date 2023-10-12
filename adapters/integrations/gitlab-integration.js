@@ -562,7 +562,7 @@ ${content}`;
           : ""
   }
       
-**${downstreamAssets.length} downstream assets** 👇
+**${downstreamAssets.entityCount} downstream assets** 👇
 Name | Type | Description | Owners | Terms | Source URL
 --- | --- | --- | --- | --- | ---
 ${rows.map((row) => row.map(i => i.replace(/\|/g, "•").replace(/\n/g, "")).join(" | ")).join("\n")}
