@@ -167,7 +167,7 @@ Here is your downstream impact analysis for **${totalChangedFiles} ${
 ${comments}`;
     console.log("At line 163 in printDownstreamAssets");
     const existingComment = await this.checkCommentExists({ gitlab }); //Complete
-    console.log("At line 165 after checkCommentExists");
+    console.log("At line 165 after checkCommentExists", existingComment);
     if (totalChangedFiles > 0)
       await this.createIssueComment({
         //Complete
@@ -304,9 +304,9 @@ Make sure your Atlan Instance URL is set in the following format.
 ${content}`;
 
     console.log("At line 301 inside createIssueComment", content);
-
+    console.log("IS_DEV", IS_DEV)
     if (IS_DEV) return content;
-
+    
     if (comment_id && !forceNewComment)
       return await gitlab.MergeRequestNotes.edit(
         CI_PROJECT_PATH,
