@@ -563,7 +563,6 @@ ${content}`;
         ? getCertificationImage(asset.attributes.certificateStatus)
         : ""
     }
-          
     **${downstreamAssets.entityCount} downstream assets** 👇
     Name | Type | Description | Owners | Terms | Source URL
     --- | --- | --- | --- | --- | ---
