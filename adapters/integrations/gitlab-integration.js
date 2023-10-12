@@ -561,13 +561,15 @@ ${content}`;
           ? getCertificationImage(asset.attributes.certificateStatus)
           : ""
   }
-  <details><summary>    
-**${downstreamAssets.entityCount} downstream assets** 👇</summary>
+
+<details><summary><b>    
+${downstreamAssets.entityCount} downstream assets 👇</b></summary><br/>
 Name | Type | Description | Owners | Terms | Source URL
 --- | --- | --- | --- | --- | ---
 ${rows.map((row) => row.map(i => i.replace(/\|/g, "•").replace(/\n/g, "")).join(" | ")).join("\n")}
 
 ${getImageURL("atlan-logo", 15, 15)} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${asset.guid}?utm_source=dbt_github_action)
+
 </details>`;
 
   return comment
