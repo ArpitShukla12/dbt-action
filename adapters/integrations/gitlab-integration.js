@@ -554,18 +554,7 @@ ${content}`;
     console.log("Rows: ", rows);
     //changed downstreamAssets.length to downstreamAssets.entities.length
 
-    const comment = `### ${getConnectorImage(
-      asset.attributes.connectorName
-    )} [${asset.displayText}](${ATLAN_INSTANCE_URL}/assets/${
-      asset.guid
-    }?utm_source=dbt_github_action) ${
-      asset.attributes?.certificateStatus
-        ? getCertificationImage(asset.attributes.certificateStatus)
-        : ""
-    }
-
-    <strong>${downstreamAssets.entityCount} downstream assets</strong> 👇
-    **${downstreamAssets.entityCount} downstream assets** 👇`;
+    const comment = `**${downstreamAssets.entityCount} downstream assets** 👇`;
 
     console.log("Comment:", comment);
     return comment;
