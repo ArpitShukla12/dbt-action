@@ -461,7 +461,7 @@ ${content}`;
       CI_PROJECT_PATH,
       CI_MERGE_REQUEST_IID
     );
-
+    console.log("Existing comments inside checkCommentExists :", comments) 
     return comments.find(
       // Why here we have hardocded value? What should be over here inplace of this.
       (comment) =>
