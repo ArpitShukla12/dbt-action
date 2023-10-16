@@ -311,9 +311,9 @@ ${content}`;
     
     if (comment_id && !forceNewComment) {
       return await gitlab.MergeRequestNotes.edit({
-        projectId: CI_PROJECT_PATH,
-        mergerequestIId: CI_MERGE_REQUEST_IID,
-        noteId: comment_id,
+        projectId: 51117370,
+        mergerequestIId: 8,
+        noteId: 1605948771,
         options: {
           body: content
         }
