@@ -308,13 +308,16 @@ ${content}`;
     console.log("IS_DEV", IS_DEV)
     if (IS_DEV) return content;
     
-    if (comment_id && !forceNewComment)
-      return await gitlab.MergeRequestNotes.edit(
-        CI_PROJECT_PATH,
-        CI_MERGE_REQUEST_IID,
-        comment_id,
-        content
-      );
+    if (comment_id && !forceNewComment) {
+      return await gitlab.MergeRequestNotes.edit({
+        projectId: CI_PROJECT_PATH,
+        mergerequestIId: CI_MERGE_REQUEST_IID,
+        noteId: comment_id,
+        options: {
+          body: content
+        }
+      });
+    }
     return await gitlab.MergeRequestNotes.create(
       CI_PROJECT_PATH,
       CI_MERGE_REQUEST_IID,
