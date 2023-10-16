@@ -167,7 +167,7 @@ Here is your downstream impact analysis for **${totalChangedFiles} ${
 ${comments}`;
     console.log("At line 163 in printDownstreamAssets");
     const existingComment = await this.checkCommentExists({ gitlab }); //Complete
-    console.log("At line 165 after checkCommentExists", existingComment?.id);
+    console.log("At line 165 after checkCommentExists", existingComment);
     if (totalChangedFiles > 0)
       await this.createIssueComment({
         //Complete
@@ -186,9 +186,10 @@ ${comments}`;
     //Done
     // Implementation for setting resources on GitHub
     // Use this.token to access the token
+    console.log("At line 189 in setResourceOnAsset")
     const changedFiles = await this.getChangedFiles({ gitlab }); //Done
     var totalChangedFiles = 0;
-
+    console.log("At line 192 after getChangedFiles", changedFiles) 
     if (changedFiles.length === 0) return;
 
     for (const { fileName, filePath, headSHA } of changedFiles) {
@@ -198,17 +199,17 @@ ${comments}`;
         filePath,
         headSHA,
       });
-
-      const environments = getGitLabEnvironments();
+      console.log("At line 202", assetName) 
+      // const environments = getGitLabEnvironments();
 
       let environment = null;
-      for (const [baseBranchName, environmentName] of environments) {
-        if (baseBranchName === source_branch) {
-          environment = environmentName;
-          break;
-        }
-      }
-
+      // for (const [baseBranchName, environmentName] of environments) {
+      //   if (baseBranchName === source_branch) {
+      //     environment = environmentName;
+      //     break;
+      //   }
+      // }
+      
       const asset = await getAsset({
         //Done
         name: assetName,
@@ -216,12 +217,12 @@ ${comments}`;
         environment: environment,
         integration: "gitlab",
       });
-
+      console.log("At line 220 after getAsset in setResourceDownstream", asset) 
       if (!asset) continue;
 
       const { guid: modelGuid } = asset;
       const { guid: tableAssetGuid } = asset.attributes.sqlAsset;
-
+      console.log("At line 225")
       await createResource(
         //Done
         //Complete
@@ -240,7 +241,7 @@ ${comments}`;
 
       totalChangedFiles++;
     }
-
+    console.log("At line 244 before create Issue comment")
     const comment = await this.createIssueComment({
       //Done
       //Complete
@@ -252,7 +253,7 @@ This pull request has been added as a resource to all the assets modified. ✅
       comment_id: null,
       forceNewComment: true,
     });
-
+    console.log("At line 256 after create issue comment ")
     return totalChangedFiles;
   }
 
@@ -465,7 +466,7 @@ ${content}`;
     return comments.find(
       // Why here we have hardocded value? What should be over here inplace of this.
       (comment) =>
-        comment.author.username === "Jaagrav" &&
+        comment.author.username === "arpit.shukla1" &&
         comment.body.includes(
           "<!-- ActionCommentIdentifier: atlan-dbt-action -->"
         )
