@@ -298,9 +298,10 @@ Make sure your Atlan Instance URL is set in the following format.
     comment_id = null,
     forceNewComment = false,
   }) {
-    console.log("At line 295 inside createIssueComment");
+    console.log("At line 295 inside createIssueComment", comment_id);
     const { CI_PROJECT_PATH, CI_MERGE_REQUEST_IID } = process.env;
-
+    console.log(CI_PROJECT_PATH, CI_MERGE_REQUEST_IID)
+    console.log(typeof comment_id) 
     content = `<!-- ActionCommentIdentifier: atlan-dbt-action -->
 ${content}`;
 
