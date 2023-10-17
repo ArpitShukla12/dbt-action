@@ -186,10 +186,10 @@ ${comments}`;
     //Done
     // Implementation for setting resources on GitHub
     // Use this.token to access the token
-    console.log("At line 189 in setResourceOnAsset")
+    console.log("At line 189 in setResourceOnAsset");
     const changedFiles = await this.getChangedFiles({ gitlab }); //Done
     var totalChangedFiles = 0;
-    console.log("At line 192 after getChangedFiles", changedFiles) 
+    console.log("At line 192 after getChangedFiles", changedFiles);
     if (changedFiles.length === 0) return;
 
     for (const { fileName, filePath, headSHA } of changedFiles) {
@@ -199,7 +199,7 @@ ${comments}`;
         filePath,
         headSHA,
       });
-      console.log("At line 202", assetName) 
+      console.log("At line 202", assetName);
       // const environments = getGitLabEnvironments();
 
       let environment = null;
@@ -209,7 +209,7 @@ ${comments}`;
       //     break;
       //   }
       // }
-      
+
       const asset = await getAsset({
         //Done
         name: assetName,
@@ -217,12 +217,12 @@ ${comments}`;
         environment: environment,
         integration: "gitlab",
       });
-      console.log("At line 220 after getAsset in setResourceDownstream", asset) 
+      console.log("At line 220 after getAsset in setResourceDownstream", asset);
       if (!asset) continue;
 
       const { guid: modelGuid } = asset;
       const { guid: tableAssetGuid } = asset.attributes.sqlAsset;
-      console.log("At line 225")
+      console.log("At line 225");
       await createResource(
         //Done
         //Complete
@@ -241,7 +241,7 @@ ${comments}`;
 
       totalChangedFiles++;
     }
-    console.log("At line 244 before create Issue comment")
+    console.log("At line 244 before create Issue comment");
     const comment = await this.createIssueComment({
       //Done
       //Complete
@@ -253,7 +253,7 @@ This pull request has been added as a resource to all the assets modified. ✅
       comment_id: null,
       forceNewComment: true,
     });
-    console.log("At line 256 after create issue comment ")
+    console.log("At line 256 after create issue comment ");
     return totalChangedFiles;
   }
 
@@ -299,24 +299,25 @@ Make sure your Atlan Instance URL is set in the following format.
     forceNewComment = false,
   }) {
     console.log("At line 295 inside createIssueComment", comment_id);
-    const { CI_PROJECT_PATH, CI_MERGE_REQUEST_IID } = process.env;
-    console.log(CI_PROJECT_PATH, CI_MERGE_REQUEST_IID)
-    console.log(typeof comment_id) 
+    const { CI_PROJECT_PATH, CI_MERGE_REQUEST_IID, CI_PROJECT_ID } =
+      process.env;
+    console.log(CI_PROJECT_PATH, CI_MERGE_REQUEST_IID);
+    console.log(CI_PROJECT_ID);
     content = `<!-- ActionCommentIdentifier: atlan-dbt-action -->
 ${content}`;
 
     console.log("At line 301 inside createIssueComment", content);
-    console.log("IS_DEV", IS_DEV)
+    console.log("IS_DEV", IS_DEV);
     if (IS_DEV) return content;
-    
+
     if (comment_id && !forceNewComment) {
       return await gitlab.MergeRequestNotes.edit({
-        projectId: 51117370,
-        mergerequestIId: 8,
-        noteId: 1605948771,
+        projectId: CI_PROJECT_ID,
+        mergerequestIId: CI_MERGE_REQUEST_IID,
+        noteId: comment_id,
         options: {
-          body: content
-        }
+          body: content,
+        },
       });
     }
     return await gitlab.MergeRequestNotes.create(
@@ -466,7 +467,7 @@ ${content}`;
       CI_PROJECT_PATH,
       CI_MERGE_REQUEST_IID
     );
-    console.log("Existing comments inside checkCommentExists :", comments) 
+    console.log("Existing comments inside checkCommentExists :", comments);
     return comments.find(
       // Why here we have hardocded value? What should be over here inplace of this.
       (comment) =>
@@ -559,23 +560,35 @@ ${content}`;
     console.log("Rows: ", rows);
     //changed downstreamAssets.length to downstreamAssets.entities.length
 
-    const comment = `### ${getConnectorImage(asset.attributes.connectorName)} [${
-      asset.displayText
-  }](${ATLAN_INSTANCE_URL}/assets/${asset.guid}?utm_source=dbt_github_action) ${
+    const comment = `### ${getConnectorImage(
+      asset.attributes.connectorName
+    )} [${asset.displayText}](${ATLAN_INSTANCE_URL}/assets/${
+      asset.guid
+    }?utm_source=dbt_github_action) ${
       asset.attributes?.certificateStatus
-          ? getCertificationImage(asset.attributes.certificateStatus)
-          : ""
-  }
+        ? getCertificationImage(asset.attributes.certificateStatus)
+        : ""
+    }
 
 <details><summary>
     
 <b>${downstreamAssets.entityCount} downstream assets 👇</b></summary><br/>
 Name | Type | Description | Owners | Terms | Source URL
 --- | --- | --- | --- | --- | ---
-${rows.map((row) => row.map(i => i.replace(/\|/g, "•").replace(/\n/g, "")).join(" | ")).join("\n")}
+${rows
+  .map((row) =>
+    row.map((i) => i.replace(/\|/g, "•").replace(/\n/g, "")).join(" | ")
+  )
+  .join("\n")}
 
-${getImageURL("atlan-logo", 15, 15)} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${asset.guid}?utm_source=dbt_github_action)</details>`;
+${getImageURL(
+  "atlan-logo",
+  15,
+  15
+)} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${
+      asset.guid
+    }?utm_source=dbt_github_action)</details>`;
 
-  return comment
+    return comment;
   }
 }
