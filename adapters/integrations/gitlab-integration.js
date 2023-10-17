@@ -173,7 +173,7 @@ ${comments}`;
         //Complete
         gitlab,
         content: comments,
-        comment_id: existingComment?.noteable_id,
+        comment_id: existingComment?.id,
       });
 
     if (totalChangedFiles === 0 && existingComment)
