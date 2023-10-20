@@ -180,7 +180,7 @@ ${comments}`;
         //Complete
         gitlab,
         content: comments,
-        comment_id: existingComment?.id,
+        comment_id: existingComment?.noteable_id,
       });
 
     if (totalChangedFiles === 0 && existingComment)
@@ -323,7 +323,7 @@ ${content}`;
         mergerequestIId: CI_MERGE_REQUEST_IID,
         noteId: comment_id,
         options: {
-          body: "Hii",
+          body: content,
         },
       });
     }
