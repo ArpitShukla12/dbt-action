@@ -409,13 +409,14 @@ ${content}`;
       })
       .filter((i) => i !== undefined);
 
+    console.log("At line 412 changed files before filtering are", changedFiles)
     changedFiles = changedFiles.filter((item, index) => {
       return (
         changedFiles.findIndex((obj) => obj.fileName === item.fileName) ===
         index
       );
     });
-
+    
     console.log("At line 399 Completed getChangedFiles ", changedFiles);
 
     return changedFiles;
