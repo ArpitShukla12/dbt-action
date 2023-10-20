@@ -220,7 +220,7 @@ ${comments}`;
       });
       console.log("At line 220 after getAsset in setResourceDownstream", asset);
       if (!asset) continue;
-
+      console.log(asset.attributes.dbtModelSqlAssets);
       const { guid: modelGuid } = asset;
       const { guid: tableAssetGuid } = asset.attributes.sqlAsset;
       console.log("At line 225");
