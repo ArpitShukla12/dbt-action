@@ -180,7 +180,7 @@ ${comments}`;
         //Complete
         gitlab,
         content: comments,
-        comment_id: existingComment?.noteable_id,
+        comment_id: existingComment?.id,
       });
 
     if (totalChangedFiles === 0 && existingComment)
@@ -318,14 +318,14 @@ ${content}`;
     if (IS_DEV) return content;
 
     if (comment_id && !forceNewComment) {
-      return await gitlab.MergeRequestNotes.edit({
-        projectId: CI_PROJECT_ID,
-        mergerequestIId: CI_MERGE_REQUEST_IID,
-        noteId: comment_id,
-        options: {
+      return await gitlab.MergeRequestNotes.edit(
+        CI_PROJECT_ID,
+        CI_MERGE_REQUEST_IID,
+        comment_id,
+        {
           body: content,
-        },
-      });
+        }
+      );
     }
     return await gitlab.MergeRequestNotes.create(
       CI_PROJECT_PATH,
