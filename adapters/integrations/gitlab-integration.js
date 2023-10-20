@@ -62,6 +62,7 @@ export default class GitLabIntegration extends IntegrationInterface {
         gitlab,
         web_url,
         source_branch,
+        diff_refs,
       });
     }
 
@@ -182,12 +183,12 @@ ${comments}`;
     return totalChangedFiles;
   }
 
-  async setResourceOnAsset({ gitlab, web_url, source_branch }) {
+  async setResourceOnAsset({ gitlab, web_url, source_branch, diff_refs }) {
     //Done
     // Implementation for setting resources on GitHub
     // Use this.token to access the token
     console.log("At line 189 in setResourceOnAsset");
-    const changedFiles = await this.getChangedFiles({ gitlab }); //Done
+    const changedFiles = await this.getChangedFiles({ gitlab, diff_refs }); //Done
     var totalChangedFiles = 0;
     console.log("At line 192 after getChangedFiles", changedFiles);
     if (changedFiles.length === 0) return;
@@ -377,7 +378,6 @@ ${content}`;
             .split("/")
             .reverse()[0]
             .split(".");
-
           //Cross-check this with Jaagrav. ###
           if (modelName) {
             if (old_path === null) {
@@ -409,14 +409,14 @@ ${content}`;
       })
       .filter((i) => i !== undefined);
 
-    console.log("At line 412 changed files before filtering are", changedFiles)
+    console.log("At line 412 changed files before filtering are", changedFiles);
     changedFiles = changedFiles.filter((item, index) => {
       return (
         changedFiles.findIndex((obj) => obj.fileName === item.fileName) ===
         index
       );
     });
-    
+
     console.log("At line 399 Completed getChangedFiles ", changedFiles);
 
     return changedFiles;
