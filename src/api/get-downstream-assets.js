@@ -96,12 +96,15 @@ ${getImageURL(
       asset.guid
     }/lineage/overview?utm_source=dbt_${integration}_action)`;
 
-    sendSegmentEventOfIntegration("dbt_ci_action_failure", {
-      reason: "failed_to_fetch_lineage",
-      asset_guid: asset.guid,
-      asset_name: asset.name,
-      asset_typeName: asset.typeName,
-      msg: err,
+    sendSegmentEventOfIntegration({
+      action: "dbt_ci_action_failure",
+      properties: {
+        reason: "failed_to_fetch_lineage",
+        asset_guid: asset.guid,
+        asset_name: asset.name,
+        asset_typeName: asset.typeName,
+        msg: err,
+      },
     });
 
     return comment;

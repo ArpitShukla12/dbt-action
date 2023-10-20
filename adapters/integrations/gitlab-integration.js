@@ -67,9 +67,12 @@ export default class GitLabIntegration extends IntegrationInterface {
     }
 
     if (total_assets !== 0)
-      this.sendSegmentEventOfIntegration("dbt_ci_action_run", {
-        asset_count: total_assets,
-        total_time: Date.now() - timeStart,
+      this.sendSegmentEventOfIntegration({
+        action: "dbt_ci_action_run",
+        properties: {
+          asset_count: total_assets,
+          total_time: Date.now() - timeStart,
+        },
       });
   }
 
@@ -141,12 +144,15 @@ export default class GitLabIntegration extends IntegrationInterface {
         continue;
       }
 
-      this.sendSegmentEventOfIntegration("dbt_ci_action_downstream_unfurl", {
-        //Complete
-        asset_guid: asset.guid,
-        asset_type: asset.typeName,
-        downstream_count: downstreamAssets.length,
-        total_fetch_time: Date.now() - timeStart,
+      this.sendSegmentEventOfIntegration({
+        action: "dbt_ci_action_downstream_unfurl",
+        properties: {
+          //Complete
+          asset_guid: asset.guid,
+          asset_type: asset.typeName,
+          downstream_count: downstreamAssets.length,
+          total_fetch_time: Date.now() - timeStart,
+        },
       });
 
       const comment = await this.renderDownstreamAssetsComment({
@@ -469,10 +475,15 @@ ${content}`;
       CI_MERGE_REQUEST_IID
     );
     console.log("Existing comments inside checkCommentExists :", comments);
+    var user = "arpit.shukla1";
+    if (comments.length != 0) {
+      user = comments[0].author.username;
+      console.log("User is :", user);
+    }
     return comments.find(
       // Why here we have hardocded value? What should be over here inplace of this.
       (comment) =>
-        comment.author.username === "arpit.shukla1" &&
+        comment.author.username === user &&
         comment.body.includes(
           "<!-- ActionCommentIdentifier: atlan-dbt-action -->"
         )
