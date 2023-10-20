@@ -323,7 +323,7 @@ ${content}`;
         mergerequestIId: CI_MERGE_REQUEST_IID,
         noteId: comment_id,
         options: {
-          body: content,
+          body: "Hii",
         },
       });
     }
