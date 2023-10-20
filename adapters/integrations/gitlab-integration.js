@@ -248,9 +248,9 @@ ${comments}`;
       //Complete
       gitlab,
       content: `🎊 Congrats on the merge!
-
-This pull request has been added as a resource to all the assets modified. ✅
-`,
+  
+      This pull request has been added as a resource to all the assets modified. ✅
+      `,
       comment_id: null,
       forceNewComment: true,
     });
