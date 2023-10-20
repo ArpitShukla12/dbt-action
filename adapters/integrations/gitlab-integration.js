@@ -475,15 +475,11 @@ ${content}`;
       CI_MERGE_REQUEST_IID
     );
     console.log("Existing comments inside checkCommentExists :", comments);
-    var user = "arpit.shukla1";
-    if (comments.length != 0) {
-      user = comments[0].author.username;
-      console.log("User is :", user);
-    }
+
     return comments.find(
       // Why here we have hardocded value? What should be over here inplace of this.
       (comment) =>
-        comment.author.username === user &&
+        comment.author.username.includes("_bot_") &&
         comment.body.includes(
           "<!-- ActionCommentIdentifier: atlan-dbt-action -->"
         )
