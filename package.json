@@ -38,5 +38,8 @@
     "json-stringify-safe": "^5.0.1",
     "node-fetch": "^3.3.0",
     "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/json-stringify-safe": "^5.0.2"
   }
 }

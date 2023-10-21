@@ -3,10 +3,7 @@ import dotenv from "dotenv"; // Check do we actually need it or not
 import IntegrationInterface from "./contract/contract.js";
 import github from "@actions/github";
 import { isIgnoreModelAliasMatching } from "../../src/utils/get-environment-variables.js";
-import {
-  getCertificationImage,
-  getConnectorImage,
-} from "../../src/utils/get-image-url.js";
+import { getCertificationImage, getConnectorImage } from "../../src/utils/get-image-url.js";
 import { getEnvironments } from "../../src/utils/get-environment-variables.js";
 import stringify from "json-stringify-safe";
 import {

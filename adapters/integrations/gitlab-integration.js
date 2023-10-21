@@ -8,13 +8,24 @@ import {
   getAsset,
   getDownstreamAssets,
   sendSegmentEvent,
-} from "../../src/api/index.js";
-import { getImageURL, auth } from "../../src/utils/index.js";
-import { getGitLabEnvironments } from "../../src/utils/get-environment-variables.js";
-import { getConnectorImage } from "../../src/utils/index.js";
-import { getCertificationImage } from "../../src/utils/index.js";
+} from "../api/index.js";
+import {
+  getImageURL,
+  auth,
+  getConnectorImage,
+  getCertificationImage,
+  getGitLabEnvironments,
+} from "../utils/index.js";
+// import { getGitLabEnvironments } from "../../src/utils/get-environment-variables.js";
+// import { getConnectorImage } from "../../src/utils/index.js";
+// import { getCertificationImage } from "../../src/utils/index.js";
 import stringify from "json-stringify-safe";
-import { getSetResourceOnAssetComment, getErrorResponseStatus401, getErrorResponseStatusUndefined, getRenderDownstreamComment } from "../templates/gitlab-integration.js";
+import {
+  getSetResourceOnAssetComment,
+  getErrorResponseStatus401,
+  getErrorResponseStatusUndefined,
+  getRenderDownstreamComment,
+} from "../templates/gitlab-integration.js";
 dotenv.config();
 const ATLAN_INSTANCE_URL = process.env.ATLAN_INSTANCE_URL;
 const { IS_DEV } = process.env;
@@ -555,37 +566,42 @@ ${content}`;
     );
     console.log("Rows: ", rows);
     //changed downstreamAssets.length to downstreamAssets.entities.length
-    const comment1 = getRenderDownstreamComment(asset, ATLAN_INSTANCE_URL, downstreamAssets, rows)
-    console.log("Comment 1 : ", comment1) 
-//     const comment = `### ${getConnectorImage(
-//       asset.attributes.connectorName
-//     )} [${asset.displayText}](${ATLAN_INSTANCE_URL}/assets/${
-//       asset.guid
-//     }?utm_source=dbt_github_action) ${
-//       asset.attributes?.certificateStatus
-//         ? getCertificationImage(asset.attributes.certificateStatus)
-//         : ""
-//     }
+    const comment1 = getRenderDownstreamComment(
+      asset,
+      ATLAN_INSTANCE_URL,
+      downstreamAssets,
+      rows
+    );
+    console.log("Comment 1 : ", comment1);
+    //     const comment = `### ${getConnectorImage(
+    //       asset.attributes.connectorName
+    //     )} [${asset.displayText}](${ATLAN_INSTANCE_URL}/assets/${
+    //       asset.guid
+    //     }?utm_source=dbt_github_action) ${
+    //       asset.attributes?.certificateStatus
+    //         ? getCertificationImage(asset.attributes.certificateStatus)
+    //         : ""
+    //     }
 
-// <details><summary>
-    
-// <b>${downstreamAssets.entityCount} downstream assets 👇</b></summary><br/>
-// Name | Type | Description | Owners | Terms | Source URL
-// --- | --- | --- | --- | --- | ---
-// ${rows
-//   .map((row) =>
-//     row.map((i) => i.replace(/\|/g, "•").replace(/\n/g, "")).join(" | ")
-//   )
-//   .join("\n")}
+    // <details><summary>
 
-// ${getImageURL(
-//   "atlan-logo",
-//   15,
-//   15
-// )} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${
-//       asset.guid
-//     }?utm_source=dbt_github_action)</details>`;
-//     console.log("Comment2 : ", comment)
+    // <b>${downstreamAssets.entityCount} downstream assets 👇</b></summary><br/>
+    // Name | Type | Description | Owners | Terms | Source URL
+    // --- | --- | --- | --- | --- | ---
+    // ${rows
+    //   .map((row) =>
+    //     row.map((i) => i.replace(/\|/g, "•").replace(/\n/g, "")).join(" | ")
+    //   )
+    //   .join("\n")}
+
+    // ${getImageURL(
+    //   "atlan-logo",
+    //   15,
+    //   15
+    // )} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${
+    //       asset.guid
+    //     }?utm_source=dbt_github_action)</details>`;
+    //     console.log("Comment2 : ", comment)
     return comment1;
   }
 }

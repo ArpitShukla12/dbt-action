@@ -1,6 +1,4 @@
-import { getImageURL} from "../../src/utils/index.js";
-import { getConnectorImage } from "../../src/utils/index.js";
-import { getCertificationImage } from "../../src/utils/index.js";
+import { getImageURL, getConnectorImage, getCertificationImage } from "../utils/index.js";
 
 export function getErrorResponseStatus401 (ATLAN_INSTANCE_URL) {//Have changed comment make sure to recheck it with team
     return `We couldn't connect to your Atlan Instance, please make sure to set the valid Atlan Bearer Token as \`ATLAN_API_TOKEN\` as this repository's action secret. 
