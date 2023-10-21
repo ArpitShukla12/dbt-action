@@ -22,3 +22,40 @@ function getErrorResponseStatusUndefined() {
     `
 }
 
+function getRenderDownstreamComment() {
+    return `### ${getConnectorImage(
+        asset.attributes.connectorName
+      )} [${asset.displayText}](${ATLAN_INSTANCE_URL}/assets/${
+        asset.guid
+      }?utm_source=dbt_github_action) ${
+        asset.attributes?.certificateStatus
+          ? getCertificationImage(asset.attributes.certificateStatus)
+          : ""
+      }
+  
+  <details><summary>
+      
+  <b>${downstreamAssets.entityCount} downstream assets 👇</b></summary><br/>
+  Name | Type | Description | Owners | Terms | Source URL
+  --- | --- | --- | --- | --- | ---
+  ${rows
+    .map((row) =>
+      row.map((i) => i.replace(/\|/g, "•").replace(/\n/g, "")).join(" | ")
+    )
+    .join("\n")}
+  
+  ${getImageURL(
+    "atlan-logo",
+    15,
+    15
+  )} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${
+        asset.guid
+      }?utm_source=dbt_github_action)</details>`
+}
+
+function getSetResourceOnAssetComment() {
+    return `🎊 Congrats on the merge!
+  
+    This pull request has been added as a resource to all the assets modified. ✅
+    `
+}
