@@ -14,7 +14,7 @@ import { getGitLabEnvironments } from "../../src/utils/get-environment-variables
 import { getConnectorImage } from "../../src/utils/index.js";
 import { getCertificationImage } from "../../src/utils/index.js";
 import stringify from "json-stringify-safe";
-
+import { getSetResourceOnAssetComment, getErrorResponseStatus401, getErrorResponseStatusUndefined, getRenderDownstreamComment } from "../templates/gitlab-integration";
 dotenv.config();
 const ATLAN_INSTANCE_URL = process.env.ATLAN_INSTANCE_URL;
 const { IS_DEV } = process.env;
@@ -253,10 +253,7 @@ ${comments}`;
       //Done
       //Complete
       gitlab,
-      content: `🎊 Congrats on the merge!
-  
-      This pull request has been added as a resource to all the assets modified. ✅
-      `,
+      content: getSetResourceOnAssetComment(),
       comment_id: null,
       forceNewComment: true,
     });
@@ -272,9 +269,7 @@ ${comments}`;
       //Complete
       await this.createIssueComment({
         gitlab,
-        content: `We couldn't connect to your Atlan Instance, please make sure to set the valid Atlan Bearer Token as \`ATLAN_API_TOKEN\` in your .gitlab-ci.yml file.
-
-Atlan Instance URL: ${ATLAN_INSTANCE_URL}`,
+        content: getErrorResponseStatus401(ATLAN_INSTANCE_URL),
       });
       return false;
     }
@@ -282,14 +277,7 @@ Atlan Instance URL: ${ATLAN_INSTANCE_URL}`,
     if (response === undefined) {
       await this.createIssueComment({
         gitlab,
-        content: `We couldn't connect to your Atlan Instance, please make sure to set the valid Atlan Instance URL as \`ATLAN_INSTANCE_URL\` in your .gitlab-ci.yml file.
-
-Atlan Instance URL: ${ATLAN_INSTANCE_URL}
-
-Make sure your Atlan Instance URL is set in the following format.
-\`https://tenant.atlan.com\`
-
-`,
+        content: getErrorResponseStatusUndefined(ATLAN_INSTANCE_URL),
       });
       return false;
     }
@@ -567,36 +555,37 @@ ${content}`;
     );
     console.log("Rows: ", rows);
     //changed downstreamAssets.length to downstreamAssets.entities.length
+    const comment1 = getRenderDownstreamComment(asset, ATLAN_INSTANCE_URL, downstreamAssets, rows)
+    console.log("Comment 1 : ", comment1) 
+//     const comment = `### ${getConnectorImage(
+//       asset.attributes.connectorName
+//     )} [${asset.displayText}](${ATLAN_INSTANCE_URL}/assets/${
+//       asset.guid
+//     }?utm_source=dbt_github_action) ${
+//       asset.attributes?.certificateStatus
+//         ? getCertificationImage(asset.attributes.certificateStatus)
+//         : ""
+//     }
 
-    const comment = `### ${getConnectorImage(
-      asset.attributes.connectorName
-    )} [${asset.displayText}](${ATLAN_INSTANCE_URL}/assets/${
-      asset.guid
-    }?utm_source=dbt_github_action) ${
-      asset.attributes?.certificateStatus
-        ? getCertificationImage(asset.attributes.certificateStatus)
-        : ""
-    }
-
-<details><summary>
+// <details><summary>
     
-<b>${downstreamAssets.entityCount} downstream assets 👇</b></summary><br/>
-Name | Type | Description | Owners | Terms | Source URL
---- | --- | --- | --- | --- | ---
-${rows
-  .map((row) =>
-    row.map((i) => i.replace(/\|/g, "•").replace(/\n/g, "")).join(" | ")
-  )
-  .join("\n")}
+// <b>${downstreamAssets.entityCount} downstream assets 👇</b></summary><br/>
+// Name | Type | Description | Owners | Terms | Source URL
+// --- | --- | --- | --- | --- | ---
+// ${rows
+//   .map((row) =>
+//     row.map((i) => i.replace(/\|/g, "•").replace(/\n/g, "")).join(" | ")
+//   )
+//   .join("\n")}
 
-${getImageURL(
-  "atlan-logo",
-  15,
-  15
-)} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${
-      asset.guid
-    }?utm_source=dbt_github_action)</details>`;
-
-    return comment;
+// ${getImageURL(
+//   "atlan-logo",
+//   15,
+//   15
+// )} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${
+//       asset.guid
+//     }?utm_source=dbt_github_action)</details>`;
+//     console.log("Comment2 : ", comment)
+    return comment1;
   }
 }

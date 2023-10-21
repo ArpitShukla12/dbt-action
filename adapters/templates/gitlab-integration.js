@@ -1,17 +1,16 @@
-const ATLAN_INSTANCE_URL = process.env.ATLAN_INSTANCE_URL;
+import { getImageURL} from "../../src/utils/index.js";
+import { getConnectorImage } from "../../src/utils/index.js";
+import { getCertificationImage } from "../../src/utils/index.js";
 
-
-//Authentication 
-
-function getErrorResponseStatus401 () {
+export function getErrorResponseStatus401 (ATLAN_INSTANCE_URL) {//Have changed comment make sure to recheck it with team
     return `We couldn't connect to your Atlan Instance, please make sure to set the valid Atlan Bearer Token as \`ATLAN_API_TOKEN\` as this repository's action secret. 
 
     Atlan Instance URL: ${ATLAN_INSTANCE_URL}
     
-    Set your repository action secrets [here](https://github.com/${context.payload.repository.full_name}/settings/secrets/actions). For more information on how to setup the Atlan dbt Action, please read the [setup documentation here](https://github.com/atlanhq/dbt-action/blob/main/README.md).`
+    For more information on how to setup the Atlan dbt Action, please read the [setup documentation here](https://github.com/atlanhq/dbt-action/blob/main/README.md).`
 }
 
-function getErrorResponseStatusUndefined() {
+export function getErrorResponseStatusUndefined(ATLAN_INSTANCE_URL) {
     return `We couldn't connect to your Atlan Instance, please make sure to set the valid Atlan Instance URL as \`ATLAN_INSTANCE_URL\` in your .gitlab-ci.yml file.
 
     Atlan Instance URL: ${ATLAN_INSTANCE_URL}
@@ -22,12 +21,12 @@ function getErrorResponseStatusUndefined() {
     `
 }
 
-function getRenderDownstreamComment() {
+export function getRenderDownstreamComment(asset,ATLAN_INSTANCE_URL,downstreamAssets,rows) {
     return `### ${getConnectorImage(
         asset.attributes.connectorName
       )} [${asset.displayText}](${ATLAN_INSTANCE_URL}/assets/${
         asset.guid
-      }?utm_source=dbt_github_action) ${
+      }?utm_source=dbt_gitlab_action) ${
         asset.attributes?.certificateStatus
           ? getCertificationImage(asset.attributes.certificateStatus)
           : ""
@@ -50,10 +49,10 @@ function getRenderDownstreamComment() {
     15
   )} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${
         asset.guid
-      }?utm_source=dbt_github_action)</details>`
+      }?utm_source=dbt_gitlab_action)</details>`
 }
 
-function getSetResourceOnAssetComment() {
+export function getSetResourceOnAssetComment() {
     return `🎊 Congrats on the merge!
   
     This pull request has been added as a resource to all the assets modified. ✅

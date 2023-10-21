@@ -2,6 +2,10 @@ import fetch from "node-fetch";
 import core from "@actions/core";
 import dotenv from "dotenv";
 import stringify from "json-stringify-safe";
+import {
+  getErrorModelNotFound,
+  getErrorDoesNotMaterialize,
+} from "../../adapters/templates/atlan.js";
 
 dotenv.config();
 
@@ -107,14 +111,15 @@ export default async function getAsset({
     });
   console.log("<><><><><><><><><><><><><>");
   console.log(response);
+  //Test both the below comments as we have replaced with functions
   if (!response?.entities?.length)
     return {
-      error: `❌ Model with name **${name}** could not be found or is deleted <br><br>`,
+      error: getErrorModelNotFound(name),
     };
 
   if (!response?.entities[0]?.attributes?.dbtModelSqlAssets?.length > 0)
     return {
-      error: `❌ Model with name [${name}](${ATLAN_INSTANCE_URL}/assets/${response.entities[0].guid}/overview?utm_source=dbt_${integration}_action) does not materialise any asset <br><br>`,
+      error: getErrorDoesNotMaterialize(name, ATLAN_INSTANCE_URL, response, integration),
     };
 
   return response.entities[0];
