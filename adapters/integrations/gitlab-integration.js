@@ -14,7 +14,7 @@ import { getGitLabEnvironments } from "../../src/utils/get-environment-variables
 import { getConnectorImage } from "../../src/utils/index.js";
 import { getCertificationImage } from "../../src/utils/index.js";
 import stringify from "json-stringify-safe";
-import { getSetResourceOnAssetComment, getErrorResponseStatus401, getErrorResponseStatusUndefined, getRenderDownstreamComment } from "../templates/gitlab-integration";
+import { getSetResourceOnAssetComment, getErrorResponseStatus401, getErrorResponseStatusUndefined, getRenderDownstreamComment } from "../templates/gitlab-integration.js";
 dotenv.config();
 const ATLAN_INSTANCE_URL = process.env.ATLAN_INSTANCE_URL;
 const { IS_DEV } = process.env;
