@@ -60,6 +60,8 @@ export default async function createResource( //Done
     });
 
   console.log("Created Resource:", response);
+  console.log("UPDATE : ", response.mutatedEntities.UPDATE);
+  console.log("CREATE : ", response.mutatedEntities.CREATE);
 
   return response;
 }

@@ -137,6 +137,7 @@ export default class GitLabIntegration extends IntegrationInterface {
       ).length;
       console.log("At line 118", totalModifiedFiles);
       const { guid } = asset; //Changed code over here
+      console.log("GUID in PDA:", guid);
       const timeStart = Date.now();
       const downstreamAssets = await getDownstreamAssets(
         //Done
@@ -245,6 +246,7 @@ ${comments}`;
       ).length;
       console.log("At line 246 in setResourceOnAsset", totalModifiedFiles);
       const { guid } = asset; //Changed code over here
+      console.log("GUID in SRA :", guid);
       const downstreamAssets = await getDownstreamAssets(
         //Done
         asset,
@@ -267,6 +269,8 @@ ${comments}`;
       const { guid: tableAssetGuid } = asset.attributes.dbtModelSqlAssets[0]; // Here we get an array for the time being choosing 0th element but resolve this
       console.log("At line 225");
       console.log("Just before");
+      console.log("MODELGUID :", modelGuid);
+      console.log("TABLEGUID:", tableAssetGuid);
       var { CI_COMMIT_MESSAGE } = process.env;
       console.log(CI_COMMIT_MESSAGE);
       // Check here also logic changed
