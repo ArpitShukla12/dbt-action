@@ -267,9 +267,11 @@ ${comments}`;
       const { guid: tableAssetGuid } = asset.attributes.dbtModelSqlAssets[0]; // Here we get an array for the time being choosing 0th element but resolve this
       console.log("At line 225");
 
-      const { CI_MERGE_REQUEST_TITLE } = process.env;
+      const { CI_COMMIT_MESSAGE } = process.env;
       // Check here also logic changed
-      console.log("Merge Request Title :", CI_MERGE_REQUEST_TITLE);
+      const lines = CI_COMMIT_MESSAGE.split("\n");
+      const CI_MERGE_REQUEST_TITLE = lines[1];
+      console.log(CI_MERGE_REQUEST_TITLE);
       if (downstreamAssets.entityCount != 0) {
         await createResource(
           //Done

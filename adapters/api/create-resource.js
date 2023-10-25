@@ -49,10 +49,13 @@ export default async function createResource( //Done
     .then((e) => e.json())
     .catch((err) => {
       console.log(err);
-      sendSegmentEventOfIntegration("dbt_ci_action_failure", {
-        reason: "failed_to_create_resource",
-        asset_name: name,
-        msg: err,
+      sendSegmentEventOfIntegration({
+        action: "dbt_ci_action_failure",
+        properties: {
+          reason: "failed_to_create_resource",
+          asset_name: name, // This should change
+          msg: err,
+        },
       });
     });
 
