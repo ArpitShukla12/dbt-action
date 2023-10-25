@@ -20,34 +20,55 @@ export function getErrorResponseStatusUndefined(ATLAN_INSTANCE_URL) {
 }
 
 export function getRenderDownstreamComment(asset,ATLAN_INSTANCE_URL,downstreamAssets,rows) {
-    return `### ${getConnectorImage(
-        asset.attributes.connectorName
-      )} [${asset.displayText}](${ATLAN_INSTANCE_URL}/assets/${
-        asset.guid
-      }?utm_source=dbt_gitlab_action) ${
-        asset.attributes?.certificateStatus
-          ? getCertificationImage(asset.attributes.certificateStatus)
-          : ""
-      }
-  
-  <details><summary>
+    if(rows.length == 0) {
+        return `### ${getConnectorImage(
+            asset.attributes.connectorName
+          )} [${asset.displayText}](${ATLAN_INSTANCE_URL}/assets/${
+            asset.guid
+          }?utm_source=dbt_gitlab_action) ${
+            asset.attributes?.certificateStatus
+              ? getCertificationImage(asset.attributes.certificateStatus)
+              : ""
+          }
       
-  <b>${downstreamAssets.entityCount} downstream assets 👇</b></summary><br/>
-  Name | Type | Description | Owners | Terms | Source URL
-  --- | --- | --- | --- | --- | ---
-  ${rows
-    .map((row) =>
-      row.map((i) => i.replace(/\|/g, "•").replace(/\n/g, "")).join(" | ")
-    )
-    .join("\n")}
-  
-  ${getImageURL(
-    "atlan-logo",
-    15,
-    15
-  )} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${
-        asset.guid
-      }?utm_source=dbt_gitlab_action)</details>`
+      ${getImageURL(
+        "atlan-logo",
+        15,
+        15
+      )} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${
+            asset.guid
+          }?utm_source=dbt_gitlab_action)`
+    } else {
+        return `### ${getConnectorImage(
+            asset.attributes.connectorName
+          )} [${asset.displayText}](${ATLAN_INSTANCE_URL}/assets/${
+            asset.guid
+          }?utm_source=dbt_gitlab_action) ${
+            asset.attributes?.certificateStatus
+              ? getCertificationImage(asset.attributes.certificateStatus)
+              : ""
+          }
+      
+      <details><summary>
+          
+      <b>${downstreamAssets.entityCount} downstream assets 👇</b></summary><br/>
+      Name | Type | Description | Owners | Terms | Source URL
+      --- | --- | --- | --- | --- | ---
+      ${rows
+        .map((row) =>
+          row.map((i) => i.replace(/\|/g, "•").replace(/\n/g, "")).join(" | ")
+        )
+        .join("\n")}
+      
+      ${getImageURL(
+        "atlan-logo",
+        15,
+        15
+      )} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${
+            asset.guid
+          }?utm_source=dbt_gitlab_action)</details>`
+    }
+    
 }
 
 export function getSetResourceOnAssetComment() {
