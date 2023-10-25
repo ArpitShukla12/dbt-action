@@ -312,6 +312,7 @@ ${comments}`;
     //Done
     const response = await auth();
     var { CI_PROJECT_NAME, GITLAB_USER_LOGIN } = process.env;
+    const existingComment = await this.checkCommentExists({ gitlab });
     if (response?.status === 401) {
       //Complete
       await this.createIssueComment({
@@ -321,6 +322,7 @@ ${comments}`;
           CI_PROJECT_NAME,
           GITLAB_USER_LOGIN
         ),
+        comment_id: existingComment?.id,
       });
       return false;
     }
@@ -328,7 +330,12 @@ ${comments}`;
     if (response === undefined) {
       await this.createIssueComment({
         gitlab,
-        content: getErrorResponseStatusUndefined(ATLAN_INSTANCE_URL),
+        content: getErrorResponseStatusUndefined(
+          ATLAN_INSTANCE_URL,
+          CI_PROJECT_NAME,
+          GITLAB_USER_LOGIN
+        ),
+        comment_id: existingComment?.id,
       });
       return false;
     }
