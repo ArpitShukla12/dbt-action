@@ -67,6 +67,6 @@ export function getRenderDownstreamComment(asset,ATLAN_INSTANCE_URL,downstreamAs
 export function getSetResourceOnAssetComment() {
     return `🎊 Congrats on the merge!
   
-    This pull request has been added as a resource to all the assets modified. ✅
-    `
+This pull request has been added as a resource to all the assets modified. ✅
+`
 }
