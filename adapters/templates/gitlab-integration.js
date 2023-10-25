@@ -5,7 +5,7 @@ export function getErrorResponseStatus401 (ATLAN_INSTANCE_URL, CI_PROJECT_NAME, 
 
     Atlan Instance URL: ${ATLAN_INSTANCE_URL}
     
-    Set your repository action secrets [here]: (https://gitlab.com/${GITLAB_USER_LOGIN}/${CI_PROJECT_NAME}/-/settings/ci_cd). For more information on how to setup the Atlan dbt Action, please read the [setup documentation here]: (https://github.com/atlanhq/dbt-action/blob/main/README.md).`
+    Set your repository action secrets [here](https://gitlab.com/${GITLAB_USER_LOGIN}/${CI_PROJECT_NAME}/-/settings/ci_cd) . For more information on how to setup the Atlan dbt Action, please read the [setup documentation here](https://github.com/atlanhq/dbt-action/blob/main/README.md) .`
 }
 
 export function getErrorResponseStatusUndefined(ATLAN_INSTANCE_URL) {
