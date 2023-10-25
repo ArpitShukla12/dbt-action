@@ -111,7 +111,7 @@ export default async function getAsset({
     });
   console.log("<><><><><><><><><><><><><>");
   console.log(response);
-  console.log(response.entities.attributes);
+  console.log(response?.entities?.attributes);
   //Test both the below comments as we have replaced with functions
   if (!response?.entities?.length)
     return {
