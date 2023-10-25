@@ -269,6 +269,7 @@ ${comments}`;
 
       const { CI_MERGE_REQUEST_TITLE } = process.env;
       // Check here also logic changed
+      console.log("Merge Request Title :", CI_MERGE_REQUEST_TITLE);
       if (downstreamAssets.entityCount != 0) {
         await createResource(
           //Done
