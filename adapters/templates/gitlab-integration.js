@@ -32,11 +32,11 @@ export function getRenderDownstreamComment(asset,ATLAN_INSTANCE_URL,downstreamAs
               : ""
           }
       
-      ${getImageURL(
+    ${getImageURL(
         "atlan-logo",
         15,
         15
-      )} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${
+    )} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${
             asset.guid
           }?utm_source=dbt_gitlab_action)`
     }
