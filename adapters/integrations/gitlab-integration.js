@@ -513,7 +513,8 @@ ${content}`;
     //Done
     //Complete
     console.log("At line 442 inside checkCommentExists");
-    const { CI_PROJECT_PATH, CI_MERGE_REQUEST_IID } = process.env;
+    const { CI_PROJECT_PATH, CI_MERGE_REQUEST_IID, CI_PROJECT_ID } =
+      process.env;
     if (IS_DEV) return null;
 
     const comments = await gitlab.MergeRequestNotes.all(
@@ -521,11 +522,12 @@ ${content}`;
       CI_MERGE_REQUEST_IID
     );
     console.log("Existing comments inside checkCommentExists :", comments);
-
+    const identifier = `project_${CI_PROJECT_ID}_bot_`;
+    console.log(identifier);
     return comments.find(
       // Why here we have hardocded value? What should be over here inplace of this.
       (comment) =>
-        comment.author.username.includes("_bot_") &&
+        comment.author.username.includes(identifier) &&
         comment.body.includes(
           "<!-- ActionCommentIdentifier: atlan-dbt-action -->"
         )
