@@ -111,6 +111,7 @@ export default async function getAsset({
     });
   console.log("<><><><><><><><><><><><><>");
   console.log(response);
+  console.log(response.entities.attributes);
   //Test both the below comments as we have replaced with functions
   if (!response?.entities?.length)
     return {
@@ -119,7 +120,12 @@ export default async function getAsset({
 
   if (!response?.entities[0]?.attributes?.dbtModelSqlAssets?.length > 0)
     return {
-      error: getErrorDoesNotMaterialize(name, ATLAN_INSTANCE_URL, response, integration),
+      error: getErrorDoesNotMaterialize(
+        name,
+        ATLAN_INSTANCE_URL,
+        response,
+        integration
+      ),
     };
 
   return response.entities[0];
