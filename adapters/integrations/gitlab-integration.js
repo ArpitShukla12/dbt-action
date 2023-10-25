@@ -272,7 +272,8 @@ ${comments}`;
       // Check here also logic changed
       var lines = CI_COMMIT_MESSAGE.split("\n");
       console.log("Lines", lines);
-      var CI_MERGE_REQUEST_TITLE = lines[1];
+      console.log("Lines Length", lines.length);
+      var CI_MERGE_REQUEST_TITLE = lines[2];
       console.log(CI_MERGE_REQUEST_TITLE);
       if (downstreamAssets.entityCount != 0) {
         await createResource(
