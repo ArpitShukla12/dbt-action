@@ -8,7 +8,6 @@ export function getErrorResponseStatus401 (ATLAN_INSTANCE_URL, CI_PROJECT_NAME, 
     Atlan Instance URL: ${ATLAN_INSTANCE_URL}
     
     [here](https://gitlab.com/${GITLAB_USER_LOGIN}/${CI_PROJECT_NAME}/-/settings/ci_cd).
-
     `
     )
 }
