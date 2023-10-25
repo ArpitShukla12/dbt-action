@@ -20,6 +20,26 @@ export function getErrorResponseStatusUndefined(ATLAN_INSTANCE_URL) {
 }
 
 export function getRenderDownstreamComment(asset,ATLAN_INSTANCE_URL,downstreamAssets,rows) {
+    console.log("Rows",rows)
+    if(rows.length == 0) {
+        return `### ${getConnectorImage(
+            asset.attributes.connectorName
+          )} [${asset.displayText}](${ATLAN_INSTANCE_URL}/assets/${
+            asset.guid
+          }?utm_source=dbt_gitlab_action) ${
+            asset.attributes?.certificateStatus
+              ? getCertificationImage(asset.attributes.certificateStatus)
+              : ""
+          }
+      
+      ${getImageURL(
+        "atlan-logo",
+        15,
+        15
+      )} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${
+            asset.guid
+          }?utm_source=dbt_gitlab_action)`
+    }
     return `### ${getConnectorImage(
         asset.attributes.connectorName
       )} [${asset.displayText}](${ATLAN_INSTANCE_URL}/assets/${
