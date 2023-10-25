@@ -311,12 +311,16 @@ ${comments}`;
   async authIntegration({ gitlab }) {
     //Done
     const response = await auth();
-
+    var { CI_PROJECT_NAME, GITLAB_USER_LOGIN } = process.env;
     if (response?.status === 401) {
       //Complete
       await this.createIssueComment({
         gitlab,
-        content: getErrorResponseStatus401(ATLAN_INSTANCE_URL),
+        content: getErrorResponseStatus401(
+          ATLAN_INSTANCE_URL,
+          CI_PROJECT_NAME,
+          GITLAB_USER_LOGIN
+        ),
       });
       return false;
     }
