@@ -237,28 +237,55 @@ ${comments}`;
       });
       console.log("At line 220 after getAsset in setResourceDownstream", asset);
       if (!asset) continue;
+
+      //Newly added Logic to not add PR when downstream assets are not available
+
+      const totalModifiedFiles = changedFiles.filter(
+        (i) => i.status === "modified"
+      ).length;
+      console.log("At line 246 in setResourceOnAsset", totalModifiedFiles);
+      const { guid } = asset; //Changed code over here
+      const downstreamAssets = await getDownstreamAssets(
+        //Done
+        asset,
+        guid,
+        totalModifiedFiles,
+        this.sendSegmentEventOfIntegration,
+        "gitlab"
+      );
+      console.log(
+        "At line 256 Completed getDownstreamAssets in setResourceOnAsset"
+      );
+
+      if (downstreamAssets.error) {
+        console.log("Dont Know what to do over here"); //Sort this out
+        continue;
+      }
+
       console.log(asset.attributes.dbtModelSqlAssets);
       const { guid: modelGuid } = asset;
       const { guid: tableAssetGuid } = asset.attributes.dbtModelSqlAssets[0]; // Here we get an array for the time being choosing 0th element but resolve this
       console.log("At line 225");
 
       const { CI_MERGE_REQUEST_TITLE } = process.env;
-
-      await createResource(
-        //Done
-        //Complete
-        modelGuid,
-        CI_MERGE_REQUEST_TITLE,
-        web_url,
-        this.sendSegmentEventOfIntegration
-      );
-      await createResource(
-        //Done
-        tableAssetGuid,
-        CI_MERGE_REQUEST_TITLE,
-        web_url,
-        this.sendSegmentEventOfIntegration
-      );
+      // Check here also logic changed
+      if (downstreamAssets.entityCount != 0) {
+        await createResource(
+          //Done
+          //Complete
+          modelGuid,
+          CI_MERGE_REQUEST_TITLE,
+          web_url,
+          this.sendSegmentEventOfIntegration
+        );
+        await createResource(
+          //Done
+          tableAssetGuid,
+          CI_MERGE_REQUEST_TITLE,
+          web_url,
+          this.sendSegmentEventOfIntegration
+        );
+      }
 
       totalChangedFiles++;
     }
