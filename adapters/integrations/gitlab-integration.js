@@ -241,18 +241,21 @@ ${comments}`;
       const { guid: modelGuid } = asset;
       const { guid: tableAssetGuid } = asset.attributes.dbtModelSqlAssets[0]; // Here we get an array for the time being choosing 0th element but resolve this
       console.log("At line 225");
+
+      const { CI_MERGE_REQUEST_TITLE } = process.env;
+
       await createResource(
         //Done
         //Complete
         modelGuid,
-        "Pull Request on GitLab",
+        CI_MERGE_REQUEST_TITLE,
         web_url,
         this.sendSegmentEventOfIntegration
       );
       await createResource(
         //Done
         tableAssetGuid,
-        "Pull Request on GitLab",
+        CI_MERGE_REQUEST_TITLE,
         web_url,
         this.sendSegmentEventOfIntegration
       );
