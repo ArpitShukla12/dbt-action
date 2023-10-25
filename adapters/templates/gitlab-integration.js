@@ -3,7 +3,7 @@ import { getImageURL, getConnectorImage, getCertificationImage } from "../utils/
 export function getErrorResponseStatus401 (ATLAN_INSTANCE_URL, CI_PROJECT_NAME, GITLAB_USER_LOGIN) {//Have changed comment make sure to recheck it with team
     return (
     `
-    We couldn't connect to your Atlan Instance, please make sure to set the valid Atlan Bearer Token as \`ATLAN_API_TOKEN\` as this repository's action secret. 
+    We couldn't connect to your Atlan Instance, please make sure to set the valid Atlan Bearer Token as ATLAN_API_TOKEN as this repository's action secret. 
 
     Atlan Instance URL: ${ATLAN_INSTANCE_URL}
     
