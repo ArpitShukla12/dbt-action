@@ -492,6 +492,7 @@ ${content}`;
     });
     console.log("At line 414 inside getAssetName");
     var matches = regExp.exec(fileContents);
+    console.log(matches);
     console.log("At line 416");
     if (matches) {
       return matches[1];
