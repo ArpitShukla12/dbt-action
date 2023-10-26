@@ -483,7 +483,8 @@ ${content}`;
     //Done
     //Complete
     console.log("At line 407 inside getAssetName");
-    var regExp = /config\(.*alias=\'([^']+)\'.*\)/im; //Change
+    var regExp =
+      /{{\s*config\s*\(\s*(?:[^,]*,)*\s*alias\s*=\s*['"]([^'"]+)['"](?:\s*,[^,]*)*\s*\)\s*}}/im; //Changed
     var fileContents = await this.getFileContents({
       gitlab,
       filePath,

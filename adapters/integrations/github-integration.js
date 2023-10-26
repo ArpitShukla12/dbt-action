@@ -3,7 +3,10 @@ import dotenv from "dotenv"; // Check do we actually need it or not
 import IntegrationInterface from "./contract/contract.js";
 import github from "@actions/github";
 import { isIgnoreModelAliasMatching } from "../../src/utils/get-environment-variables.js";
-import { getCertificationImage, getConnectorImage } from "../../src/utils/get-image-url.js";
+import {
+  getCertificationImage,
+  getConnectorImage,
+} from "../../src/utils/get-image-url.js";
 import { getEnvironments } from "../../src/utils/get-environment-variables.js";
 import stringify from "json-stringify-safe";
 import {
@@ -71,14 +74,7 @@ export default class GitHubIntegration extends IntegrationInterface {
   async printDownstreamAssets({ octokit, context }) {
     //Done
     console.log("Brother");
-    // const changedFiles = await this.getChangedFiles({ octokit, context }); //Complete
-    var changedFiles = [
-      {
-        fileName: "instacart_beverages_order_customer",
-        filePath: "instacart_beverages_order_customer.sql",
-        status: "modified",
-      },
-    ];
+    const changedFiles = await this.getChangedFiles({ octokit, context }); //Complete
     let comments = ``;
     let totalChangedFiles = 0;
 
@@ -284,7 +280,7 @@ This pull request has been added as a resource to all the assets modified. ✅
   async authIntegration({ octokit, context }) {
     //DONE
     //COMPLETE
-    console.log("Here is Context:", context);
+    console.log("Here is Context:", context.repo);
     const response = await auth();
     console.log("Inside authIntegration befor comment exists");
     const existingComment = await this.checkCommentExists({ octokit, context });
@@ -454,7 +450,8 @@ Set your repository action secrets [here](https://github.com/${context.payload.r
     if (IS_DEV) return null;
 
     const { pull_request } = context.payload;
-
+    console.log(pull_request);
+    console.log("Here: ", context.repo);
     const comments = await octokit.rest.issues.listComments({
       ...context.repo,
       issue_number: pull_request.number,

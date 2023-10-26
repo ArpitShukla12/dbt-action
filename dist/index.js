@@ -25546,14 +25546,7 @@ class GitHubIntegration extends IntegrationInterface {
   async printDownstreamAssets({ octokit, context }) {
     //Done
     console.log("Brother");
-    // const changedFiles = await this.getChangedFiles({ octokit, context }); //Complete
-    var changedFiles = [
-      {
-        fileName: "instacart_beverages_order_customer",
-        filePath: "instacart_beverages_order_customer.sql",
-        status: "modified",
-      },
-    ];
+    const changedFiles = await this.getChangedFiles({ octokit, context }); //Complete
     let comments = ``;
     let totalChangedFiles = 0;
 
@@ -25759,7 +25752,7 @@ This pull request has been added as a resource to all the assets modified. ✅
   async authIntegration({ octokit, context }) {
     //DONE
     //COMPLETE
-    console.log("Here is Context:", context);
+    console.log("Here is Context:", context.repo);
     const response = await auth();
     console.log("Inside authIntegration befor comment exists");
     const existingComment = await this.checkCommentExists({ octokit, context });
@@ -25929,7 +25922,8 @@ Set your repository action secrets [here](https://github.com/${context.payload.r
     if (github_integration_IS_DEV) return null;
 
     const { pull_request } = context.payload;
-
+    console.log(pull_request);
+    console.log("Here: ", context.repo);
     const comments = await octokit.rest.issues.listComments({
       ...context.repo,
       issue_number: pull_request.number,
@@ -34243,6 +34237,10 @@ async function get_asset_getAsset({
     });
   console.log("<><><><><><><><><><><><><>");
   console.log(response);
+  if (response?.entities?.length) {
+    console.log("Over here", response?.entities[0]?.attributes);
+  }
+  console.log("Got Printed?");
   //Test both the below comments as we have replaced with functions
   if (!response?.entities?.length)
     return {
@@ -34251,7 +34249,12 @@ async function get_asset_getAsset({
 
   if (!response?.entities[0]?.attributes?.dbtModelSqlAssets?.length > 0)
     return {
-      error: getErrorDoesNotMaterialize(name, api_get_asset_ATLAN_INSTANCE_URL, response, integration),
+      error: getErrorDoesNotMaterialize(
+        name,
+        api_get_asset_ATLAN_INSTANCE_URL,
+        response,
+        integration
+      ),
     };
 
   return response.entities[0];
@@ -34347,14 +34350,19 @@ async function create_resource_createResource( //Done
     .then((e) => e.json())
     .catch((err) => {
       console.log(err);
-      sendSegmentEventOfIntegration("dbt_ci_action_failure", {
-        reason: "failed_to_create_resource",
-        asset_name: name,
-        msg: err,
+      sendSegmentEventOfIntegration({
+        action: "dbt_ci_action_failure",
+        properties: {
+          reason: "failed_to_create_resource",
+          asset_name: name, // This should change
+          msg: err,
+        },
       });
     });
 
   console.log("Created Resource:", response);
+  console.log("UPDATE : ", response.mutatedEntities.UPDATE);
+  console.log("CREATE : ", response.mutatedEntities.CREATE);
 
   return response;
 }
@@ -34414,26 +34422,40 @@ async function segment_sendSegmentEvent(action, body) {
 ;// CONCATENATED MODULE: ./adapters/templates/gitlab-integration.js
 
 
-function getErrorResponseStatus401 (ATLAN_INSTANCE_URL) {//Have changed comment make sure to recheck it with team
+function getErrorResponseStatus401 (ATLAN_INSTANCE_URL, CI_PROJECT_NAME, GITLAB_USER_LOGIN) {//Have changed comment make sure to recheck it with team
     return `We couldn't connect to your Atlan Instance, please make sure to set the valid Atlan Bearer Token as \`ATLAN_API_TOKEN\` as this repository's action secret. 
 
-    Atlan Instance URL: ${ATLAN_INSTANCE_URL}
+Atlan Instance URL: ${ATLAN_INSTANCE_URL}
     
-    For more information on how to setup the Atlan dbt Action, please read the [setup documentation here](https://github.com/atlanhq/dbt-action/blob/main/README.md).`
+Set your repository action secrets [here](https://gitlab.com/${GITLAB_USER_LOGIN}/${CI_PROJECT_NAME}/-/settings/ci_cd). For more information on how to setup the Atlan dbt Action, please read the [setup documentation here](https://github.com/atlanhq/dbt-action/blob/main/README.md).`
 }
 
-function getErrorResponseStatusUndefined(ATLAN_INSTANCE_URL) {
-    return `We couldn't connect to your Atlan Instance, please make sure to set the valid Atlan Instance URL as \`ATLAN_INSTANCE_URL\` in your .gitlab-ci.yml file.
+function getErrorResponseStatusUndefined(ATLAN_INSTANCE_URL, CI_PROJECT_NAME, GITLAB_USER_LOGIN) {
+    return `We couldn't connect to your Atlan Instance, please make sure to set the valid Atlan Instance URL as \`ATLAN_INSTANCE_URL\` as this repository's action secret. 
 
-    Atlan Instance URL: ${ATLAN_INSTANCE_URL}
+Atlan Instance URL: ${ATLAN_INSTANCE_URL}
     
-    Make sure your Atlan Instance URL is set in the following format.
-    \`https://tenant.atlan.com\`
+Make sure your Atlan Instance URL is set in the following format.
+\`https://tenant.atlan.com\`
     
-    `
+Set your repository action secrets [here](https://gitlab.com/${GITLAB_USER_LOGIN}/${CI_PROJECT_NAME}/-/settings/ci_cd). For more information on how to setup the Atlan dbt Action, please read the [setup documentation here](https://github.com/atlanhq/dbt-action/blob/main/README.md).`
 }
 
 function getRenderDownstreamComment(asset,ATLAN_INSTANCE_URL,downstreamAssets,rows) {
+    console.log("Rows",rows)
+    if(rows.length == 0) {
+        return `### ${utils_get_image_url_getConnectorImage(
+            asset.attributes.connectorName
+        )} [${asset.displayText}](${ATLAN_INSTANCE_URL}/assets/${
+            asset.guid
+        }?utm_source=dbt_gitlab_action) ${
+            asset.attributes?.certificateStatus
+                ? utils_get_image_url_getCertificationImage(asset.attributes.certificateStatus)
+                : ""
+        }
+        
+  ${utils_get_image_url_getImageURL("atlan-logo", 15, 15)} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${asset.guid}?utm_source=dbt_gitlab_action)`;
+    }
     return `### ${utils_get_image_url_getConnectorImage(
         asset.attributes.connectorName
       )} [${asset.displayText}](${ATLAN_INSTANCE_URL}/assets/${
@@ -34467,8 +34489,8 @@ function getRenderDownstreamComment(asset,ATLAN_INSTANCE_URL,downstreamAssets,ro
 function getSetResourceOnAssetComment() {
     return `🎊 Congrats on the merge!
   
-    This pull request has been added as a resource to all the assets modified. ✅
-    `
+This pull request has been added as a resource to all the assets modified. ✅
+`
 }
 ;// CONCATENATED MODULE: ./adapters/integrations/gitlab-integration.js
 // gitlabIntegration.js
@@ -34581,6 +34603,8 @@ class GitLabIntegration extends IntegrationInterface {
         integration: "gitlab",
       });
 
+      if (totalChangedFiles !== 0) comments += "\n\n---\n\n";
+
       if (asset.error) {
         comments += asset.error;
         totalChangedFiles++;
@@ -34594,6 +34618,7 @@ class GitLabIntegration extends IntegrationInterface {
       ).length;
       console.log("At line 118", totalModifiedFiles);
       const { guid } = asset; //Changed code over here
+      console.log("GUID in PDA:", guid);
       const timeStart = Date.now();
       const downstreamAssets = await get_downstream_assets_getDownstreamAssets(
         //Done
@@ -34604,7 +34629,6 @@ class GitLabIntegration extends IntegrationInterface {
         "gitlab"
       );
       console.log("At line 129 Completed getDownstreamAssets");
-      if (totalChangedFiles !== 0) comments += "\n\n---\n\n";
 
       if (downstreamAssets.error) {
         comments += downstreamAssets.error;
@@ -34694,25 +34718,64 @@ ${comments}`;
       });
       console.log("At line 220 after getAsset in setResourceDownstream", asset);
       if (!asset) continue;
+
+      //Newly added Logic to not add PR when downstream assets are not available
+
+      const totalModifiedFiles = changedFiles.filter(
+        (i) => i.status === "modified"
+      ).length;
+      console.log("At line 246 in setResourceOnAsset", totalModifiedFiles);
+      const { guid } = asset; //Changed code over here
+      console.log("GUID in SRA :", guid);
+      const downstreamAssets = await get_downstream_assets_getDownstreamAssets(
+        //Done
+        asset,
+        guid,
+        totalModifiedFiles,
+        this.sendSegmentEventOfIntegration,
+        "gitlab"
+      );
+      console.log(
+        "At line 256 Completed getDownstreamAssets in setResourceOnAsset"
+      );
+
+      if (downstreamAssets.error) {
+        console.log("Dont Know what to do over here"); //Sort this out
+        continue;
+      }
+
       console.log(asset.attributes.dbtModelSqlAssets);
       const { guid: modelGuid } = asset;
       const { guid: tableAssetGuid } = asset.attributes.dbtModelSqlAssets[0]; // Here we get an array for the time being choosing 0th element but resolve this
       console.log("At line 225");
-      await create_resource_createResource(
-        //Done
-        //Complete
-        modelGuid,
-        "Pull Request on GitLab",
-        web_url,
-        this.sendSegmentEventOfIntegration
-      );
-      await create_resource_createResource(
-        //Done
-        tableAssetGuid,
-        "Pull Request on GitLab",
-        web_url,
-        this.sendSegmentEventOfIntegration
-      );
+      console.log("Just before");
+      console.log("MODELGUID :", modelGuid);
+      console.log("TABLEGUID:", tableAssetGuid);
+      var { CI_COMMIT_MESSAGE } = process.env;
+      console.log(CI_COMMIT_MESSAGE);
+      // Check here also logic changed
+      var lines = CI_COMMIT_MESSAGE.split("\n");
+      console.log("Lines", lines);
+      console.log("Lines Length", lines.length);
+      var CI_MERGE_REQUEST_TITLE = lines[2];
+      console.log(CI_MERGE_REQUEST_TITLE);
+      if (downstreamAssets.entityCount != 0) {
+        await create_resource_createResource(
+          //Done
+          //Complete
+          modelGuid,
+          CI_MERGE_REQUEST_TITLE,
+          web_url,
+          this.sendSegmentEventOfIntegration
+        );
+        await create_resource_createResource(
+          //Done
+          tableAssetGuid,
+          CI_MERGE_REQUEST_TITLE,
+          web_url,
+          this.sendSegmentEventOfIntegration
+        );
+      }
 
       totalChangedFiles++;
     }
@@ -34732,12 +34795,18 @@ ${comments}`;
   async authIntegration({ gitlab }) {
     //Done
     const response = await auth_auth();
-
+    var { CI_PROJECT_NAME, GITLAB_USER_LOGIN } = process.env;
+    const existingComment = await this.checkCommentExists({ gitlab });
     if (response?.status === 401) {
       //Complete
       await this.createIssueComment({
         gitlab,
-        content: getErrorResponseStatus401(gitlab_integration_ATLAN_INSTANCE_URL),
+        content: getErrorResponseStatus401(
+          gitlab_integration_ATLAN_INSTANCE_URL,
+          CI_PROJECT_NAME,
+          GITLAB_USER_LOGIN
+        ),
+        comment_id: existingComment?.id,
       });
       return false;
     }
@@ -34745,7 +34814,12 @@ ${comments}`;
     if (response === undefined) {
       await this.createIssueComment({
         gitlab,
-        content: getErrorResponseStatusUndefined(gitlab_integration_ATLAN_INSTANCE_URL),
+        content: getErrorResponseStatusUndefined(
+          gitlab_integration_ATLAN_INSTANCE_URL,
+          CI_PROJECT_NAME,
+          GITLAB_USER_LOGIN
+        ),
+        comment_id: existingComment?.id,
       });
       return false;
     }
@@ -34888,7 +34962,8 @@ ${content}`;
     //Done
     //Complete
     console.log("At line 407 inside getAssetName");
-    var regExp = /config\(.*alias=\'([^']+)\'.*\)/im;
+    var regExp =
+      /{{\s*config\s*\(\s*(?:[^,]*,)*\s*alias\s*=\s*['"]([^'"]+)['"](?:\s*,[^,]*)*\s*\)\s*}}/im; //Changed
     var fileContents = await this.getFileContents({
       gitlab,
       filePath,
@@ -34923,7 +34998,8 @@ ${content}`;
     //Done
     //Complete
     console.log("At line 442 inside checkCommentExists");
-    const { CI_PROJECT_PATH, CI_MERGE_REQUEST_IID } = process.env;
+    const { CI_PROJECT_PATH, CI_MERGE_REQUEST_IID, CI_PROJECT_ID } =
+      process.env;
     if (gitlab_integration_IS_DEV) return null;
 
     const comments = await gitlab.MergeRequestNotes.all(
@@ -34931,11 +35007,12 @@ ${content}`;
       CI_MERGE_REQUEST_IID
     );
     console.log("Existing comments inside checkCommentExists :", comments);
-
+    const identifier = `project_${CI_PROJECT_ID}_bot_`;
+    console.log(identifier);
     return comments.find(
       // Why here we have hardocded value? What should be over here inplace of this.
       (comment) =>
-        comment.author.username.includes("_bot_") &&
+        comment.author.username.includes(identifier) &&
         comment.body.includes(
           "<!-- ActionCommentIdentifier: atlan-dbt-action -->"
         )
