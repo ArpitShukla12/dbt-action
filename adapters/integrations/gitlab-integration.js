@@ -57,22 +57,22 @@ export default class GitLabIntegration extends IntegrationInterface {
       CI_MERGE_REQUEST_IID
     );
     console.log(temp5);
-    const { state, web_url, source_branch, diff_refs } =
+    const { state, web_url, target_branch, diff_refs } =
       await gitlab.MergeRequests.show(CI_PROJECT_PATH, CI_MERGE_REQUEST_IID);
     console.log("Diff_refs", diff_refs);
-    console.log("At line 47", state, web_url, source_branch);
+    console.log("At line 47", state, web_url, target_branch);
     let total_assets = 0;
     if (state === "opened") {
       total_assets = await this.printDownstreamAssets({
         gitlab,
-        source_branch,
+        target_branch,
         diff_refs,
       });
     } else if (state === "merged") {
       total_assets = await this.setResourceOnAsset({
         gitlab,
         web_url,
-        source_branch,
+        target_branch,
         diff_refs,
       });
     }
@@ -87,7 +87,7 @@ export default class GitLabIntegration extends IntegrationInterface {
       });
   }
 
-  async printDownstreamAssets({ gitlab, source_branch, diff_refs }) {
+  async printDownstreamAssets({ gitlab, target_branch, diff_refs }) {
     //Done
     // Implementation for printing impact on GitHub
     // Use this.token to access the token
@@ -112,7 +112,7 @@ export default class GitLabIntegration extends IntegrationInterface {
       let environment = null;
       for (const baseBranchName of Object.keys(environments)) {
         const environmentName = environments[baseBranchName];
-        if (baseBranchName === source_branch) {
+        if (baseBranchName === target_branch) {
           environment = environmentName;
           break;
         }
@@ -211,7 +211,7 @@ ${comments}`;
     return totalChangedFiles;
   }
 
-  async setResourceOnAsset({ gitlab, web_url, source_branch, diff_refs }) {
+  async setResourceOnAsset({ gitlab, web_url, target_branch, diff_refs }) {
     //Done
     // Implementation for setting resources on GitHub
     // Use this.token to access the token
@@ -234,7 +234,7 @@ ${comments}`;
 
       let environment = null;
       for (const [baseBranchName, environmentName] of environments) {
-        if (baseBranchName === source_branch) {
+        if (baseBranchName === target_branch) {
           environment = environmentName;
           break;
         }
