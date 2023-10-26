@@ -240,7 +240,7 @@ ${comments}`;
         integration: "gitlab",
       });
       console.log("At line 220 after getAsset in setResourceDownstream", asset);
-      if (!asset) continue;
+      if (asset.error) continue; //Changeed
 
       //Newly added Logic to not add PR when downstream assets are not available
 
