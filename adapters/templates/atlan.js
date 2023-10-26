@@ -2,7 +2,7 @@ import { getConnectorImage, getCertificationImage } from "../utils/index.js";
 
 export function getErrorModelNotFound(name) {
   return `
-  ❌ Model with name **${name}** could not be found or is deleted <br><br>
+ <br>❌ Model with name **${name}** could not be found or is deleted <br><br>
   `;
 }
 
