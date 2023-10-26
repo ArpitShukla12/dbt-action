@@ -403,10 +403,10 @@ Set your repository action secrets [here](https://github.com/${context.payload.r
       context,
       filePath,
     });
-
+    console.log("Here it is: ", fileContents);
     if (fileContents) {
       var matches = regExp.exec(fileContents);
-
+      console.log(matches);
       if (matches) {
         return matches[1].trim();
       }

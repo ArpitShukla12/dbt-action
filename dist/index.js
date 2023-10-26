@@ -25875,10 +25875,10 @@ Set your repository action secrets [here](https://github.com/${context.payload.r
       context,
       filePath,
     });
-
+    console.log("Here it is: ", fileContents);
     if (fileContents) {
       var matches = regExp.exec(fileContents);
-
+      console.log(matches);
       if (matches) {
         return matches[1].trim();
       }
@@ -34971,6 +34971,7 @@ ${content}`;
     });
     console.log("At line 414 inside getAssetName");
     var matches = regExp.exec(fileContents);
+    console.log(matches);
     console.log("At line 416");
     if (matches) {
       return matches[1];

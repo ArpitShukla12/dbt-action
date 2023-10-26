@@ -15,6 +15,7 @@ import {
   getConnectorImage,
   getCertificationImage,
   getGitLabEnvironments,
+  isIgnoreModelAliasMatching,
 } from "../utils/index.js";
 // import { getGitLabEnvironments } from "../../src/utils/get-environment-variables.js";
 // import { getConnectorImage } from "../../src/utils/index.js";
@@ -98,13 +99,14 @@ export default class GitLabIntegration extends IntegrationInterface {
     let totalChangedFiles = 0;
 
     for (const { fileName, filePath, headSHA } of changedFiles) {
-      const assetName = await this.getAssetName({
+      const aliasName = await this.getAssetName({
         //Complete
         gitlab,
         fileName,
         filePath,
         headSHA,
       });
+      const assetName = isIgnoreModelAliasMatching() ? fileName : aliasName;
       console.log("At line 88");
       // const environments = getGitLabEnvironments();
       // console.log("At line 90", environments);

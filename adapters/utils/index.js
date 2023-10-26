@@ -20,5 +20,6 @@ export {
     getAPIToken,
     getInstanceUrl,
     isDev,
-    getGitLabEnvironments
+    getGitLabEnvironments,
+    isIgnoreModelAliasMatching
 } from "./get-environment-variables.js"
