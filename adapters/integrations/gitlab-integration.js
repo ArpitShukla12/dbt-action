@@ -110,7 +110,8 @@ export default class GitLabIntegration extends IntegrationInterface {
       const environments = getGitLabEnvironments();
       console.log("At line 90", environments);
       let environment = null;
-      for (const [baseBranchName, environmentName] of environments) {
+      for (const baseBranchName of Object.keys(environments)) {
+        const environmentName = environments[baseBranchName];
         if (baseBranchName === source_branch) {
           environment = environmentName;
           break;
