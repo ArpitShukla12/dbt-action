@@ -220,7 +220,7 @@ ${comments}`;
         filePath,
         headSHA,
       });
-      console.log("At line 202", assetName);
+      console.log("At line 202", aliasName);
       const assetName = IS_IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
       // const environments = getGitLabEnvironments();
 
