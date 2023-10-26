@@ -87,16 +87,16 @@ export default class GitHubIntegration extends IntegrationInterface {
         filePath,
       });
       const assetName = isIgnoreModelAliasMatching() ? fileName : aliasName; //Complete
-      console.log("acha2");
-      const environments = getEnvironments();
+      console.log("acha2", aliasName);
+      // const environments = getEnvironments();
 
       let environment = null;
-      for (const [baseBranchName, environmentName] of environments) {
-        if (baseBranchName === context.payload.pull_request.base.ref) {
-          environment = environmentName;
-          break;
-        }
-      }
+      // for (const [baseBranchName, environmentName] of environments) {
+      //   if (baseBranchName === context.payload.pull_request.base.ref) {
+      //     environment = environmentName;
+      //     break;
+      //   }
+      // }
       console.log("Before getAsset");
       const asset = await getAsset({
         //Done
@@ -202,10 +202,11 @@ ${comments}`;
   async setResourceOnAsset({ octokit, context }) {
     //Done
     //Complete
+    console.log("At line 205 inside SRA");
     const changedFiles = await this.getChangedFiles({ octokit, context }); //Complete
     const { pull_request } = context.payload;
     var totalChangedFiles = 0;
-
+    console.log("At line 209 inside SRA", changedFiles);
     if (changedFiles.length === 0) return;
 
     for (const { fileName, filePath } of changedFiles) {
@@ -217,15 +218,15 @@ ${comments}`;
         filePath,
       });
 
-      const environments = getEnvironments();
+      // const environments = getEnvironments();
 
       let environment = null;
-      for (const [baseBranchName, environmentName] of environments) {
-        if (baseBranchName === context.payload.pull_request.base.ref) {
-          environment = environmentName;
-          break;
-        }
-      }
+      // for (const [baseBranchName, environmentName] of environments) {
+      //   if (baseBranchName === context.payload.pull_request.base.ref) {
+      //     environment = environmentName;
+      //     break;
+      //   }
+      // }
 
       const asset = await getAsset({
         //Done
@@ -236,11 +237,11 @@ ${comments}`;
       });
 
       if (asset.error) continue;
-
+      console.log("At line 240 inside SRA", asset);
       const { guid: modelGuid } = asset;
       const { guid: tableAssetGuid } =
         asset?.attributes?.dbtModelSqlAssets?.[0];
-
+      console.log("At line 244 inside SRA", modelGuid, tableAssetGuid);
       if (modelGuid)
         await createResource(
           //Complete
@@ -249,7 +250,7 @@ ${comments}`;
           pull_request.html_url,
           this.sendSegmentEventOfIntegration
         );
-
+      console.log("At line 253 inside SRA");
       if (tableAssetGuid)
         await createResource(
           //Complete
@@ -258,7 +259,7 @@ ${comments}`;
           pull_request.html_url,
           this.sendSegmentEventOfIntegration
         );
-
+      console.log("At line 262 inside SRA");
       totalChangedFiles++;
     }
 
@@ -273,7 +274,7 @@ This pull request has been added as a resource to all the assets modified. ✅
       comment_id: null,
       forceNewComment: true,
     });
-
+    console.log("Done");
     return totalChangedFiles;
   }
 
