@@ -15,7 +15,6 @@ import {
   getConnectorImage,
   getCertificationImage,
   getGitLabEnvironments,
-  isIgnoreModelAliasMatching,
 } from "../utils/index.js";
 // import { getGitLabEnvironments } from "../../src/utils/get-environment-variables.js";
 // import { getConnectorImage } from "../../src/utils/index.js";
@@ -29,7 +28,7 @@ import {
 } from "../templates/gitlab-integration.js";
 dotenv.config();
 const ATLAN_INSTANCE_URL = process.env.ATLAN_INSTANCE_URL;
-const { IS_DEV } = process.env;
+const { IS_DEV, IS_IGNORE_MODEL_ALIAS_MATCHING } = process.env;
 
 export default class GitLabIntegration extends IntegrationInterface {
   constructor(token) {
@@ -106,7 +105,7 @@ export default class GitLabIntegration extends IntegrationInterface {
         filePath,
         headSHA,
       });
-      const assetName = isIgnoreModelAliasMatching() ? fileName : aliasName;
+      const assetName = IS_IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
       console.log("At line 88");
       // const environments = getGitLabEnvironments();
       // console.log("At line 90", environments);
@@ -215,13 +214,14 @@ ${comments}`;
     if (changedFiles.length === 0) return;
 
     for (const { fileName, filePath, headSHA } of changedFiles) {
-      const assetName = await this.getAssetName({
+      const aliasName = await this.getAssetName({
         gitlab,
         fileName,
         filePath,
         headSHA,
       });
       console.log("At line 202", assetName);
+      const assetName = IS_IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
       // const environments = getGitLabEnvironments();
 
       let environment = null;
