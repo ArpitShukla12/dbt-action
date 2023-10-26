@@ -107,16 +107,16 @@ export default class GitLabIntegration extends IntegrationInterface {
       });
       const assetName = IS_IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
       console.log("At line 88");
-      const environments = getGitLabEnvironments();
-      console.log("At line 90", environments);
+      // const environments = getGitLabEnvironments();
+      // console.log("At line 90", environments);
       let environment = null;
-      for (const baseBranchName of Object.keys(environments)) {
-        const environmentName = environments[baseBranchName];
-        if (baseBranchName === target_branch) {
-          environment = environmentName;
-          break;
-        }
-      }
+      // for (const baseBranchName of Object.keys(environments)) {
+      //   const environmentName = environments[baseBranchName];
+      //   if (baseBranchName === target_branch) {
+      //     environment = environmentName;
+      //     break;
+      //   }
+      // }
       console.log("At line 98", environment);
       const asset = await getAsset({
         //Complete
@@ -230,15 +230,15 @@ ${comments}`;
       });
       console.log("At line 202", aliasName);
       const assetName = IS_IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
-      const environments = getGitLabEnvironments();
+      // const environments = getGitLabEnvironments();
 
       let environment = null;
-      for (const [baseBranchName, environmentName] of environments) {
-        if (baseBranchName === target_branch) {
-          environment = environmentName;
-          break;
-        }
-      }
+      // for (const [baseBranchName, environmentName] of environments) {
+      //   if (baseBranchName === target_branch) {
+      //     environment = environmentName;
+      //     break;
+      //   }
+      // }
 
       const asset = await getAsset({
         //Done
