@@ -124,6 +124,8 @@ export default class GitLabIntegration extends IntegrationInterface {
         integration: "gitlab",
       });
 
+      if (totalChangedFiles !== 0) comments += "\n\n---\n\n";
+
       if (asset.error) {
         comments += asset.error;
         totalChangedFiles++;
@@ -148,7 +150,6 @@ export default class GitLabIntegration extends IntegrationInterface {
         "gitlab"
       );
       console.log("At line 129 Completed getDownstreamAssets");
-      if (totalChangedFiles !== 0) comments += "\n\n---\n\n";
 
       if (downstreamAssets.error) {
         comments += downstreamAssets.error;
@@ -482,7 +483,7 @@ ${content}`;
     //Done
     //Complete
     console.log("At line 407 inside getAssetName");
-    var regExp = /config\(.*alias=\'([^']+)\'.*\)/im;
+    var regExp = /config\(.*alias=\'([^']+)\'.*\)/im; //Change
     var fileContents = await this.getFileContents({
       gitlab,
       filePath,
