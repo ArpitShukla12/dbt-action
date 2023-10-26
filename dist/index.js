@@ -22483,8 +22483,9 @@ const getAPIToken = () => {
   return lib_core.getInput("ATLAN_API_TOKEN");
 };
 const getEnvironments = () => {
-  return lib_core.getInput("DBT_ENVIRONMENT_BRANCH_MAP")
-    ? lib_core.getInput("DBT_ENVIRONMENT_BRANCH_MAP")
+  return core.getInput("DBT_ENVIRONMENT_BRANCH_MAP")
+    ? core
+        .getInput("DBT_ENVIRONMENT_BRANCH_MAP")
         .trim()
         ?.split("\n")
         ?.map((i) => i.split(":").map((i) => i.trim()))
@@ -25171,18 +25172,464 @@ ${get_image_url_getImageURL(
   return response;
 }
 
+;// CONCATENATED MODULE: ./adapters/utils/get-image-url.js
+
+
+function utils_get_image_url_getImageURL(name, height = 20, width = 20) {
+    try {
+        return `<img src="${utils_hosted_images[name].url}" alt="${utils_hosted_images[name].alt}" height="${height}" width="${width}"/>`;
+    } catch (e) {
+        console.log(name);
+        return '';
+    }
+}
+
+function utils_get_image_url_getConnectorImage(connectorName) {
+    return utils_get_image_url_getImageURL(`connector-${connectorName.toLowerCase()}`, 15, 15);
+}
+
+function utils_get_image_url_getCertificationImage(certificationStatus) {
+    return utils_get_image_url_getImageURL(`certification-${certificationStatus.toLowerCase()}`, 15, 15);
+}
+
+;// CONCATENATED MODULE: ./adapters/utils/hosted-images.js
+/* harmony default export */ const utils_hosted_images = ({
+    "atlan-logo": {
+        alt: "Atlan Logo",
+        url: "https://assets.atlan.com/assets/atlan-a-logo-blue-background.png",
+    },
+    "atlan-view-asset-button": {
+        alt: "View Asset in Atlan Button",
+        url: "https://iili.io/H11nfVe.png",
+    },
+    "atlan-show-lineage-button": {
+        alt: "View Lineage in Atlan Button",
+        url: "https://iili.io/H11hy1n.png",
+    },
+    "certification-deprecated": {
+        alt: "Certificate Status Deprecated",
+        url: "https://assets.atlan.com/assets/status-deprecated.svg",
+    },
+    "certification-draft": {
+        alt: "Certificate Status Drafted",
+        url: "https://assets.atlan.com/assets/status-draft.svg",
+    },
+    "certification-verified": {
+        alt: "Certificate Status Verified",
+        url: "https://assets.atlan.com/assets/status-verified.svg",
+    },
+    "connector-airflow": {
+        alt: "Connector Airflow",
+        url: "https://assets.atlan.com/assets/airflow.svg",
+    },
+    "connector-athena": {
+        alt: "Connector Athena",
+        url: "https://assets.atlan.com/assets/athena.svg",
+    },
+    "connector-aws-s3": {
+        alt: "Connector AWS S3",
+        url: "https://assets.atlan.com/assets/s3-logo.svg",
+    },
+    "connector-azure-datalake": {
+        alt: "Connector Azure Datalake",
+        url: "https://iili.io/H2iiZy7.png",
+    },
+    "connector-bigquery": {
+        alt: "Connector BigQuery",
+        url: "https://assets.atlan.com/assets/bigquery.svg",
+    },
+    "connector-databricks": {
+        alt: "Connector Databricks",
+        url: "https://assets.atlan.com/assets/databricks.svg",
+    },
+    "connector-dbt": {
+        alt: "Connector dbt",
+        url: "https://assets.atlan.com/assets/dbt-new.svg",
+    },
+    "connector-gcp": {
+        alt: "Connector GCP",
+        url: "https://assets.atlan.com/assets/gcp-logo.svg",
+    },
+    "connector-glue": {
+        alt: "Connector Glue",
+        url: "https://assets.atlan.com/assets/aws-glue.svg",
+    },
+    "connector-grafana": {
+        alt: "Connector Grafana",
+        url: "https://assets.atlan.com/assets/grafana.svg",
+    },
+    "connector-looker": {
+        alt: "Connector Looker",
+        url: "https://assets.atlan.com/assets/looker.svg",
+    },
+    "connector-mocks": {
+        alt: "Connector Mocks",
+        url: "https://iili.io/H2isqwF.png",
+    },
+    "connector-mysql": {
+        alt: "Connector MySQL",
+        url: "https://assets.atlan.com/assets/mysql.svg",
+    },
+    "connector-oracle": {
+        alt: "Connector Oracle",
+        url: "https://assets.atlan.com/assets/oracle.svg",
+    },
+    "connector-postgres": {
+        alt: "Connector Postgres",
+        url: "https://assets.atlan.com/assets/postgresql.svg",
+    },
+    "connector-powerbi": {
+        alt: "Connector PowerBI",
+        url: "https://assets.atlan.com/assets/powerbi.svg",
+    },
+    "connector-presto": {
+        alt: "Connector Presto",
+        url: "https://iili.io/H2isIFR.png",
+    },
+    "connector-python": {
+        alt: "Connector Python",
+        url: "https://iili.io/H2isTap.png",
+    },
+    "connector-r": {
+        alt: "Connector R",
+        url: "https://iili.io/H2isu8N.png",
+    },
+    "connector-redash": {
+        alt: "Connector Redash",
+        url: "https://assets.atlan.com/assets/redash-logo.svg",
+    },
+    "connector-redshift": {
+        alt: "Connector Redshift",
+        url: "https://assets.atlan.com/assets/redshift.svg",
+    },
+    "connector-sisense": {
+        alt: "Connector Sisense",
+        url: "https://assets.atlan.com/assets/sisense-logo.svg",
+    },
+    "connector-snowflake": {
+        alt: "Connector Snowflake",
+        url: "https://assets.atlan.com/assets/snowflake.svg",
+    },
+    "connector-tableau": {
+        alt: "Connector Tableau",
+        url: "https://assets.atlan.com/assets/tableau.svg",
+    },
+    "connector-mode": {
+        alt: "Connector Mode",
+        url: "https://iili.io/HVTAlgs.png"
+    },
+    "connector-sigma": {
+        alt: "Connector Sigma",
+        url: "https://iili.io/HVTA1dG.png"
+    }
+});
+
+;// CONCATENATED MODULE: ./adapters/utils/get-environment-variables.js
+
+
+
+main.config();
+
+const {
+  IS_DEV: get_environment_variables_IS_DEV,
+  ATLAN_INSTANCE_URL: get_environment_variables_ATLAN_INSTANCE_URL,
+  ATLAN_API_TOKEN: get_environment_variables_ATLAN_API_TOKEN,
+  IGNORE_MODEL_ALIAS_MATCHING: get_environment_variables_IGNORE_MODEL_ALIAS_MATCHING,
+} = process.env;
+
+const get_environment_variables_isDev = () => get_environment_variables_IS_DEV === "true";
+const get_environment_variables_getInstanceUrl = () => {
+  if (get_environment_variables_ATLAN_INSTANCE_URL) return new URL(get_environment_variables_ATLAN_INSTANCE_URL).origin;
+  return new URL(lib_core.getInput("ATLAN_INSTANCE_URL")).origin;
+};
+const get_environment_variables_getAPIToken = () => {
+  if (get_environment_variables_ATLAN_API_TOKEN) return get_environment_variables_ATLAN_API_TOKEN;
+  return lib_core.getInput("ATLAN_API_TOKEN");
+};
+const get_environment_variables_getEnvironments = () => {
+  return core.getInput("DBT_ENVIRONMENT_BRANCH_MAP")
+    ? core
+        .getInput("DBT_ENVIRONMENT_BRANCH_MAP")
+        .trim()
+        ?.split("\n")
+        ?.map((i) => i.split(":").map((i) => i.trim()))
+    : [];
+};
+const get_environment_variables_isIgnoreModelAliasMatching = () =>
+  core.getInput("IGNORE_MODEL_ALIAS_MATCHING") === "true";
+
+function get_environment_variables_getGitLabEnvironments() {
+  const { DBT_ENVIRONMENT_BRANCH_MAP } = process.env;
+
+  if (DBT_ENVIRONMENT_BRANCH_MAP) {
+    const environmentLines = DBT_ENVIRONMENT_BRANCH_MAP.split("\n");
+    const environmentMap = {};
+
+    environmentLines.forEach((line) => {
+      const [environment, branch] = line.split(":").map((item) => item.trim());
+      if (environment && branch) {
+        environmentMap[environment] = branch;
+      }
+    });
+
+    return environmentMap;
+  } else {
+    return {};
+  }
+}
+
+;// CONCATENATED MODULE: ./adapters/utils/create-comment.js
+
+
+
+const utils_create_comment_IS_DEV = get_environment_variables_isDev();
+const utils_create_comment_ATLAN_INSTANCE_URL =
+    get_environment_variables_getInstanceUrl();
+
+function create_comment_truncate(value) {
+    if (typeof value === 'string')
+        return value.length > 100 ? value.substring(0, 100) + "..." : value;
+    if (Array.isArray(value))
+        return value.length > 10 ? value.slice(0, 10).join(", ") + "..." : value.join(", ");
+    return ""
+}
+
+async function create_comment_renderDownstreamAssetsComment(
+    octokit,
+    context,
+    asset,
+    materialisedAsset,
+    downstreamAssets,
+    classifications
+) {
+    // Mapping the downstream assets data
+    let impactedData = downstreamAssets.entities.map(
+        ({
+             displayText,
+             guid,
+             typeName,
+             attributes,
+             meanings,
+             classificationNames
+         }) => {
+            // Modifying the typeName and getting the readableTypeName
+            let readableTypeName = typeName
+                .toLowerCase()
+                .replace(attributes.connectorName, "")
+                .toUpperCase();
+
+            // Filtering classifications based on classificationNames
+            let classificationsObj = classifications.filter(({name}) =>
+                classificationNames.includes(name)
+            );
+
+            // Modifying the readableTypeName
+            readableTypeName = readableTypeName.charAt(0).toUpperCase() + readableTypeName.slice(1).toLowerCase();
+
+            return [
+                guid,
+                create_comment_truncate(displayText),
+                create_comment_truncate(attributes.connectorName),
+                create_comment_truncate(readableTypeName),
+                create_comment_truncate(attributes?.userDescription || attributes?.description || ""),
+                attributes?.certificateStatus || "",
+                create_comment_truncate([...attributes?.ownerUsers, ...attributes?.ownerGroups] || []),
+                create_comment_truncate(meanings.map(({displayText, termGuid}) =>
+                    `[${displayText}](${utils_create_comment_ATLAN_INSTANCE_URL}/assets/${termGuid}/overview?utm_source=dbt_github_action)`
+                )),
+                create_comment_truncate(classificationsObj?.map(({name, displayName}) =>
+                    `\`${displayName}\``
+                )),
+                attributes?.sourceURL || ""
+            ];
+        }
+    );
+
+    // Sorting the impactedData first by typeName and then by connectorName
+    impactedData = impactedData.sort((a, b) => a[3].localeCompare(b[3]));
+    impactedData = impactedData.sort((a, b) => a[2].localeCompare(b[2]));
+
+    // Creating rows for the downstream table
+    let rows = impactedData.map(
+        ([guid, displayText, connectorName, typeName, description, certificateStatus, owners, meanings, classifications, sourceUrl]) => {
+            // Getting connector and certification images
+            const connectorImage = getConnectorImage(connectorName);
+            const certificationImage = certificateStatus ? getCertificationImage(certificateStatus) : "";
+
+            return [
+                `${connectorImage} [${displayText}](${utils_create_comment_ATLAN_INSTANCE_URL}/assets/${guid}/overview?utm_source=dbt_github_action) ${certificationImage}`,
+                `\`${typeName}\``,
+                description,
+                owners,
+                meanings,
+                classifications,
+                sourceUrl ? `[Open in ${connectorName}](${sourceUrl})` : " "
+            ];
+        }
+    );
+
+    const environmentName = materialisedAsset?.attributes?.assetDbtEnvironmentName
+    const projectName = materialisedAsset?.attributes?.assetDbtProjectName
+    // Generating asset information
+    const assetInfo = `### ${getConnectorImage(asset.attributes.connectorName)} [${
+        asset.displayText
+    }](${utils_create_comment_ATLAN_INSTANCE_URL}/assets/${asset.guid}/overview?utm_source=dbt_github_action) ${
+        asset.attributes?.certificateStatus
+            ? getCertificationImage(asset.attributes.certificateStatus)
+            : ""
+    }
+Materialised asset: ${getConnectorImage(materialisedAsset.attributes.connectorName)} [${
+        materialisedAsset.attributes.name
+    }](${utils_create_comment_ATLAN_INSTANCE_URL}/assets/${materialisedAsset.guid}/overview?utm_source=dbt_github_action) ${
+        materialisedAsset.attributes?.certificateStatus
+            ? getCertificationImage(materialisedAsset.attributes.certificateStatus)
+            : ""
+    }${environmentName ? ` | Environment Name: \`${environmentName}\`` : ''}${projectName ? ` | Project Name: \`${projectName}\`` : ''}`;
+
+    // Generating the downstream table
+    const downstreamTable = `<details><summary><b>${downstreamAssets.entityCount} downstream assets 👇</b></summary><br/>
+
+Name | Type | Description | Owners | Terms | Classifications | Source URL
+--- | --- | --- | --- | --- | --- | ---       
+${rows.map((row) => row.map(i => i.replace(/\|/g, "•").replace(/\n/g, "")).join(" | ")).join("\n")}
+
+${downstreamAssets.hasMore ? `[See more downstream assets at Atlan](${utils_create_comment_ATLAN_INSTANCE_URL}/assets/${materialisedAsset.guid}/lineage?utm_source=dbt_github_action)` : ""}
+
+</details>`;
+
+    // Generating the "View asset in Atlan" button
+    const viewAssetButton = `${getImageURL("atlan-logo", 15, 15)} [View asset in Atlan](${utils_create_comment_ATLAN_INSTANCE_URL}/assets/${asset.guid}/overview?utm_source=dbt_github_action)`;
+
+    // Generating the final comment based on the presence of downstream assets
+    if (downstreamAssets.entities.length > 0) {
+        return `${assetInfo}
+        
+${downstreamTable}
+
+${viewAssetButton}`;
+    } else {
+        return `${assetInfo}
+        
+No downstream assets found.
+
+${viewAssetButton}`;
+    }
+}
+
+
+async function create_comment_checkCommentExists(octokit, context) {
+    if (utils_create_comment_IS_DEV) return null;
+
+    const {pull_request} = context.payload;
+
+    const comments = await octokit.rest.issues.listComments({
+        ...context.repo,
+        issue_number: pull_request.number,
+    });
+
+    return comments.data.find(
+        (comment) => comment.user.login === "github-actions[bot]" && comment.body.includes("<!-- ActionCommentIdentifier: atlan-dbt-action -->")
+    );
+}
+
+async function create_comment_createIssueComment(octokit, context, content, comment_id = null, forceNewComment = false) {
+    const {pull_request} = context.payload;
+
+    content = `<!-- ActionCommentIdentifier: atlan-dbt-action -->
+${content}`
+
+    const commentObj = {
+        ...context.repo,
+        issue_number: pull_request.number,
+        body: content,
+    };
+
+    console.log(content, content.length)
+
+    if (utils_create_comment_IS_DEV) return content;
+
+    if (comment_id && !forceNewComment) return octokit.rest.issues.updateComment({...commentObj, comment_id});
+    return octokit.rest.issues.createComment(commentObj);
+}
+
+async function create_comment_deleteComment(octokit, context, comment_id) {
+    const {pull_request} = context.payload;
+
+    return octokit.rest.issues.deleteComment({
+        ...context.repo,
+        issue_number: pull_request.number,
+        comment_id,
+    });
+}
+
+;// CONCATENATED MODULE: ./adapters/utils/auth.js
+
+
+
+
+main.config();
+
+const utils_auth_ATLAN_INSTANCE_URL =
+  lib_core.getInput("ATLAN_INSTANCE_URL") || process.env.ATLAN_INSTANCE_URL;
+const utils_auth_ATLAN_API_TOKEN =
+  lib_core.getInput("ATLAN_API_TOKEN") || process.env.ATLAN_API_TOKEN;
+
+async function auth_auth() {
+  //Done
+  console.log("Inside auth in utils.js");
+  var myHeaders = {
+    authorization: `Bearer ${utils_auth_ATLAN_API_TOKEN}`,
+    "content-type": "application/json",
+  };
+
+  var requestOptions = {
+    method: "POST",
+    headers: myHeaders,
+  };
+
+  var response = await src_fetch(
+    `${utils_auth_ATLAN_INSTANCE_URL}/api/meta`,
+    requestOptions
+  ).catch((err) => {});
+  console.log("Completed auth in utils.js");
+  return response;
+}
+
+;// CONCATENATED MODULE: ./adapters/utils/index.js
+
+
+
+
+
+
 ;// CONCATENATED MODULE: ./adapters/templates/atlan.js
+
+
 function getErrorModelNotFound(name) {
-  return `❌ Model with name **${name}** could not be found or is deleted <br><br>`;
+  return `
+ <br>❌ Model with name **${name}** could not be found or is deleted <br><br>
+  `;
 }
 
 function getErrorDoesNotMaterialize(
   name,
   ATLAN_INSTANCE_URL,
   response,
-  integration
+  integration,
+  asset
 ) {
-  return `❌ Model with name [${name}](${ATLAN_INSTANCE_URL}/assets/${response.entities[0].guid}/overview?utm_source=dbt_${integration}_action) does not materialise any asset <br><br>`;
+
+  return `### ${utils_get_image_url_getConnectorImage(
+    asset.attributes.connectorName
+)} [${asset.displayText}](${ATLAN_INSTANCE_URL}/assets/${
+    asset.guid
+}?utm_source=dbt_gitlab_action) ${
+    asset.attributes?.certificateStatus
+        ? utils_get_image_url_getCertificationImage(asset.attributes.certificateStatus)
+        : ""
+}
+
+❌ Model with name [${name}](${ATLAN_INSTANCE_URL}/assets/${response.entities[0].guid}/overview?utm_source=dbt_${integration}_action) does not materialise any asset <br><br>`;
 }
 
 ;// CONCATENATED MODULE: ./src/api/get-asset.js
@@ -25559,16 +26006,16 @@ class GitHubIntegration extends IntegrationInterface {
         filePath,
       });
       const assetName = isIgnoreModelAliasMatching() ? fileName : aliasName; //Complete
-      console.log("acha2");
-      const environments = getEnvironments();
+      console.log("acha2", aliasName);
+      // const environments = getEnvironments();
 
       let environment = null;
-      for (const [baseBranchName, environmentName] of environments) {
-        if (baseBranchName === context.payload.pull_request.base.ref) {
-          environment = environmentName;
-          break;
-        }
-      }
+      // for (const [baseBranchName, environmentName] of environments) {
+      //   if (baseBranchName === context.payload.pull_request.base.ref) {
+      //     environment = environmentName;
+      //     break;
+      //   }
+      // }
       console.log("Before getAsset");
       const asset = await getAsset({
         //Done
@@ -25674,10 +26121,11 @@ ${comments}`;
   async setResourceOnAsset({ octokit, context }) {
     //Done
     //Complete
+    console.log("At line 205 inside SRA");
     const changedFiles = await this.getChangedFiles({ octokit, context }); //Complete
     const { pull_request } = context.payload;
     var totalChangedFiles = 0;
-
+    console.log("At line 209 inside SRA", changedFiles);
     if (changedFiles.length === 0) return;
 
     for (const { fileName, filePath } of changedFiles) {
@@ -25688,16 +26136,16 @@ ${comments}`;
         fileName,
         filePath,
       });
-
-      const environments = getEnvironments();
+      console.log("OII", assetName);
+      // const environments = getEnvironments();
 
       let environment = null;
-      for (const [baseBranchName, environmentName] of environments) {
-        if (baseBranchName === context.payload.pull_request.base.ref) {
-          environment = environmentName;
-          break;
-        }
-      }
+      // for (const [baseBranchName, environmentName] of environments) {
+      //   if (baseBranchName === context.payload.pull_request.base.ref) {
+      //     environment = environmentName;
+      //     break;
+      //   }
+      // }
 
       const asset = await getAsset({
         //Done
@@ -25707,12 +26155,15 @@ ${comments}`;
         integration: "github",
       });
 
-      if (asset.error) continue;
-
+      if (asset.error) {
+        console.log("Wuuuuuttt");
+        continue;
+      }
+      console.log("At line 240 inside SRA", asset);
       const { guid: modelGuid } = asset;
       const { guid: tableAssetGuid } =
         asset?.attributes?.dbtModelSqlAssets?.[0];
-
+      console.log("At line 244 inside SRA", modelGuid, tableAssetGuid);
       if (modelGuid)
         await createResource(
           //Complete
@@ -25721,7 +26172,7 @@ ${comments}`;
           pull_request.html_url,
           this.sendSegmentEventOfIntegration
         );
-
+      console.log("At line 253 inside SRA");
       if (tableAssetGuid)
         await createResource(
           //Complete
@@ -25730,7 +26181,7 @@ ${comments}`;
           pull_request.html_url,
           this.sendSegmentEventOfIntegration
         );
-
+      console.log("At line 262 inside SRA");
       totalChangedFiles++;
     }
 
@@ -25745,7 +26196,7 @@ This pull request has been added as a resource to all the assets modified. ✅
       comment_id: null,
       forceNewComment: true,
     });
-
+    console.log("Done");
     return totalChangedFiles;
   }
 
@@ -33565,436 +34016,6 @@ var {
 
 
 
-;// CONCATENATED MODULE: ./adapters/utils/get-image-url.js
-
-
-function utils_get_image_url_getImageURL(name, height = 20, width = 20) {
-    try {
-        return `<img src="${utils_hosted_images[name].url}" alt="${utils_hosted_images[name].alt}" height="${height}" width="${width}"/>`;
-    } catch (e) {
-        console.log(name);
-        return '';
-    }
-}
-
-function utils_get_image_url_getConnectorImage(connectorName) {
-    return utils_get_image_url_getImageURL(`connector-${connectorName.toLowerCase()}`, 15, 15);
-}
-
-function utils_get_image_url_getCertificationImage(certificationStatus) {
-    return utils_get_image_url_getImageURL(`certification-${certificationStatus.toLowerCase()}`, 15, 15);
-}
-
-;// CONCATENATED MODULE: ./adapters/utils/hosted-images.js
-/* harmony default export */ const utils_hosted_images = ({
-    "atlan-logo": {
-        alt: "Atlan Logo",
-        url: "https://assets.atlan.com/assets/atlan-a-logo-blue-background.png",
-    },
-    "atlan-view-asset-button": {
-        alt: "View Asset in Atlan Button",
-        url: "https://iili.io/H11nfVe.png",
-    },
-    "atlan-show-lineage-button": {
-        alt: "View Lineage in Atlan Button",
-        url: "https://iili.io/H11hy1n.png",
-    },
-    "certification-deprecated": {
-        alt: "Certificate Status Deprecated",
-        url: "https://assets.atlan.com/assets/status-deprecated.svg",
-    },
-    "certification-draft": {
-        alt: "Certificate Status Drafted",
-        url: "https://assets.atlan.com/assets/status-draft.svg",
-    },
-    "certification-verified": {
-        alt: "Certificate Status Verified",
-        url: "https://assets.atlan.com/assets/status-verified.svg",
-    },
-    "connector-airflow": {
-        alt: "Connector Airflow",
-        url: "https://assets.atlan.com/assets/airflow.svg",
-    },
-    "connector-athena": {
-        alt: "Connector Athena",
-        url: "https://assets.atlan.com/assets/athena.svg",
-    },
-    "connector-aws-s3": {
-        alt: "Connector AWS S3",
-        url: "https://assets.atlan.com/assets/s3-logo.svg",
-    },
-    "connector-azure-datalake": {
-        alt: "Connector Azure Datalake",
-        url: "https://iili.io/H2iiZy7.png",
-    },
-    "connector-bigquery": {
-        alt: "Connector BigQuery",
-        url: "https://assets.atlan.com/assets/bigquery.svg",
-    },
-    "connector-databricks": {
-        alt: "Connector Databricks",
-        url: "https://assets.atlan.com/assets/databricks.svg",
-    },
-    "connector-dbt": {
-        alt: "Connector dbt",
-        url: "https://assets.atlan.com/assets/dbt-new.svg",
-    },
-    "connector-gcp": {
-        alt: "Connector GCP",
-        url: "https://assets.atlan.com/assets/gcp-logo.svg",
-    },
-    "connector-glue": {
-        alt: "Connector Glue",
-        url: "https://assets.atlan.com/assets/aws-glue.svg",
-    },
-    "connector-grafana": {
-        alt: "Connector Grafana",
-        url: "https://assets.atlan.com/assets/grafana.svg",
-    },
-    "connector-looker": {
-        alt: "Connector Looker",
-        url: "https://assets.atlan.com/assets/looker.svg",
-    },
-    "connector-mocks": {
-        alt: "Connector Mocks",
-        url: "https://iili.io/H2isqwF.png",
-    },
-    "connector-mysql": {
-        alt: "Connector MySQL",
-        url: "https://assets.atlan.com/assets/mysql.svg",
-    },
-    "connector-oracle": {
-        alt: "Connector Oracle",
-        url: "https://assets.atlan.com/assets/oracle.svg",
-    },
-    "connector-postgres": {
-        alt: "Connector Postgres",
-        url: "https://assets.atlan.com/assets/postgresql.svg",
-    },
-    "connector-powerbi": {
-        alt: "Connector PowerBI",
-        url: "https://assets.atlan.com/assets/powerbi.svg",
-    },
-    "connector-presto": {
-        alt: "Connector Presto",
-        url: "https://iili.io/H2isIFR.png",
-    },
-    "connector-python": {
-        alt: "Connector Python",
-        url: "https://iili.io/H2isTap.png",
-    },
-    "connector-r": {
-        alt: "Connector R",
-        url: "https://iili.io/H2isu8N.png",
-    },
-    "connector-redash": {
-        alt: "Connector Redash",
-        url: "https://assets.atlan.com/assets/redash-logo.svg",
-    },
-    "connector-redshift": {
-        alt: "Connector Redshift",
-        url: "https://assets.atlan.com/assets/redshift.svg",
-    },
-    "connector-sisense": {
-        alt: "Connector Sisense",
-        url: "https://assets.atlan.com/assets/sisense-logo.svg",
-    },
-    "connector-snowflake": {
-        alt: "Connector Snowflake",
-        url: "https://assets.atlan.com/assets/snowflake.svg",
-    },
-    "connector-tableau": {
-        alt: "Connector Tableau",
-        url: "https://assets.atlan.com/assets/tableau.svg",
-    },
-    "connector-mode": {
-        alt: "Connector Mode",
-        url: "https://iili.io/HVTAlgs.png"
-    },
-    "connector-sigma": {
-        alt: "Connector Sigma",
-        url: "https://iili.io/HVTA1dG.png"
-    }
-});
-
-;// CONCATENATED MODULE: ./adapters/utils/get-environment-variables.js
-
-
-
-main.config();
-
-const {
-  IS_DEV: get_environment_variables_IS_DEV,
-  ATLAN_INSTANCE_URL: get_environment_variables_ATLAN_INSTANCE_URL,
-  ATLAN_API_TOKEN: get_environment_variables_ATLAN_API_TOKEN,
-  IGNORE_MODEL_ALIAS_MATCHING: get_environment_variables_IGNORE_MODEL_ALIAS_MATCHING,
-} = process.env;
-
-const get_environment_variables_isDev = () => get_environment_variables_IS_DEV === "true";
-const get_environment_variables_getInstanceUrl = () => {
-  if (get_environment_variables_ATLAN_INSTANCE_URL) return new URL(get_environment_variables_ATLAN_INSTANCE_URL).origin;
-  return new URL(lib_core.getInput("ATLAN_INSTANCE_URL")).origin;
-};
-const get_environment_variables_getAPIToken = () => {
-  if (get_environment_variables_ATLAN_API_TOKEN) return get_environment_variables_ATLAN_API_TOKEN;
-  return lib_core.getInput("ATLAN_API_TOKEN");
-};
-const get_environment_variables_getEnvironments = () => {
-  return core.getInput("DBT_ENVIRONMENT_BRANCH_MAP")
-    ? core
-        .getInput("DBT_ENVIRONMENT_BRANCH_MAP")
-        .trim()
-        ?.split("\n")
-        ?.map((i) => i.split(":").map((i) => i.trim()))
-    : [];
-};
-const get_environment_variables_isIgnoreModelAliasMatching = () =>
-  core.getInput("IGNORE_MODEL_ALIAS_MATCHING") === "true";
-
-function get_environment_variables_getGitLabEnvironments() {
-  const { DBT_ENVIRONMENT_BRANCH_MAP } = process.env;
-
-  if (DBT_ENVIRONMENT_BRANCH_MAP) {
-    const environmentLines = DBT_ENVIRONMENT_BRANCH_MAP.split("\n");
-    const environmentMap = {};
-
-    environmentLines.forEach((line) => {
-      const [environment, branch] = line.split(":").map((item) => item.trim());
-      if (environment && branch) {
-        environmentMap[environment] = branch;
-      }
-    });
-
-    return environmentMap;
-  } else {
-    return {};
-  }
-}
-
-;// CONCATENATED MODULE: ./adapters/utils/create-comment.js
-
-
-
-const utils_create_comment_IS_DEV = get_environment_variables_isDev();
-const utils_create_comment_ATLAN_INSTANCE_URL =
-    get_environment_variables_getInstanceUrl();
-
-function create_comment_truncate(value) {
-    if (typeof value === 'string')
-        return value.length > 100 ? value.substring(0, 100) + "..." : value;
-    if (Array.isArray(value))
-        return value.length > 10 ? value.slice(0, 10).join(", ") + "..." : value.join(", ");
-    return ""
-}
-
-async function create_comment_renderDownstreamAssetsComment(
-    octokit,
-    context,
-    asset,
-    materialisedAsset,
-    downstreamAssets,
-    classifications
-) {
-    // Mapping the downstream assets data
-    let impactedData = downstreamAssets.entities.map(
-        ({
-             displayText,
-             guid,
-             typeName,
-             attributes,
-             meanings,
-             classificationNames
-         }) => {
-            // Modifying the typeName and getting the readableTypeName
-            let readableTypeName = typeName
-                .toLowerCase()
-                .replace(attributes.connectorName, "")
-                .toUpperCase();
-
-            // Filtering classifications based on classificationNames
-            let classificationsObj = classifications.filter(({name}) =>
-                classificationNames.includes(name)
-            );
-
-            // Modifying the readableTypeName
-            readableTypeName = readableTypeName.charAt(0).toUpperCase() + readableTypeName.slice(1).toLowerCase();
-
-            return [
-                guid,
-                create_comment_truncate(displayText),
-                create_comment_truncate(attributes.connectorName),
-                create_comment_truncate(readableTypeName),
-                create_comment_truncate(attributes?.userDescription || attributes?.description || ""),
-                attributes?.certificateStatus || "",
-                create_comment_truncate([...attributes?.ownerUsers, ...attributes?.ownerGroups] || []),
-                create_comment_truncate(meanings.map(({displayText, termGuid}) =>
-                    `[${displayText}](${utils_create_comment_ATLAN_INSTANCE_URL}/assets/${termGuid}/overview?utm_source=dbt_github_action)`
-                )),
-                create_comment_truncate(classificationsObj?.map(({name, displayName}) =>
-                    `\`${displayName}\``
-                )),
-                attributes?.sourceURL || ""
-            ];
-        }
-    );
-
-    // Sorting the impactedData first by typeName and then by connectorName
-    impactedData = impactedData.sort((a, b) => a[3].localeCompare(b[3]));
-    impactedData = impactedData.sort((a, b) => a[2].localeCompare(b[2]));
-
-    // Creating rows for the downstream table
-    let rows = impactedData.map(
-        ([guid, displayText, connectorName, typeName, description, certificateStatus, owners, meanings, classifications, sourceUrl]) => {
-            // Getting connector and certification images
-            const connectorImage = getConnectorImage(connectorName);
-            const certificationImage = certificateStatus ? getCertificationImage(certificateStatus) : "";
-
-            return [
-                `${connectorImage} [${displayText}](${utils_create_comment_ATLAN_INSTANCE_URL}/assets/${guid}/overview?utm_source=dbt_github_action) ${certificationImage}`,
-                `\`${typeName}\``,
-                description,
-                owners,
-                meanings,
-                classifications,
-                sourceUrl ? `[Open in ${connectorName}](${sourceUrl})` : " "
-            ];
-        }
-    );
-
-    const environmentName = materialisedAsset?.attributes?.assetDbtEnvironmentName
-    const projectName = materialisedAsset?.attributes?.assetDbtProjectName
-    // Generating asset information
-    const assetInfo = `### ${getConnectorImage(asset.attributes.connectorName)} [${
-        asset.displayText
-    }](${utils_create_comment_ATLAN_INSTANCE_URL}/assets/${asset.guid}/overview?utm_source=dbt_github_action) ${
-        asset.attributes?.certificateStatus
-            ? getCertificationImage(asset.attributes.certificateStatus)
-            : ""
-    }
-Materialised asset: ${getConnectorImage(materialisedAsset.attributes.connectorName)} [${
-        materialisedAsset.attributes.name
-    }](${utils_create_comment_ATLAN_INSTANCE_URL}/assets/${materialisedAsset.guid}/overview?utm_source=dbt_github_action) ${
-        materialisedAsset.attributes?.certificateStatus
-            ? getCertificationImage(materialisedAsset.attributes.certificateStatus)
-            : ""
-    }${environmentName ? ` | Environment Name: \`${environmentName}\`` : ''}${projectName ? ` | Project Name: \`${projectName}\`` : ''}`;
-
-    // Generating the downstream table
-    const downstreamTable = `<details><summary><b>${downstreamAssets.entityCount} downstream assets 👇</b></summary><br/>
-
-Name | Type | Description | Owners | Terms | Classifications | Source URL
---- | --- | --- | --- | --- | --- | ---       
-${rows.map((row) => row.map(i => i.replace(/\|/g, "•").replace(/\n/g, "")).join(" | ")).join("\n")}
-
-${downstreamAssets.hasMore ? `[See more downstream assets at Atlan](${utils_create_comment_ATLAN_INSTANCE_URL}/assets/${materialisedAsset.guid}/lineage?utm_source=dbt_github_action)` : ""}
-
-</details>`;
-
-    // Generating the "View asset in Atlan" button
-    const viewAssetButton = `${getImageURL("atlan-logo", 15, 15)} [View asset in Atlan](${utils_create_comment_ATLAN_INSTANCE_URL}/assets/${asset.guid}/overview?utm_source=dbt_github_action)`;
-
-    // Generating the final comment based on the presence of downstream assets
-    if (downstreamAssets.entities.length > 0) {
-        return `${assetInfo}
-        
-${downstreamTable}
-
-${viewAssetButton}`;
-    } else {
-        return `${assetInfo}
-        
-No downstream assets found.
-
-${viewAssetButton}`;
-    }
-}
-
-
-async function create_comment_checkCommentExists(octokit, context) {
-    if (utils_create_comment_IS_DEV) return null;
-
-    const {pull_request} = context.payload;
-
-    const comments = await octokit.rest.issues.listComments({
-        ...context.repo,
-        issue_number: pull_request.number,
-    });
-
-    return comments.data.find(
-        (comment) => comment.user.login === "github-actions[bot]" && comment.body.includes("<!-- ActionCommentIdentifier: atlan-dbt-action -->")
-    );
-}
-
-async function create_comment_createIssueComment(octokit, context, content, comment_id = null, forceNewComment = false) {
-    const {pull_request} = context.payload;
-
-    content = `<!-- ActionCommentIdentifier: atlan-dbt-action -->
-${content}`
-
-    const commentObj = {
-        ...context.repo,
-        issue_number: pull_request.number,
-        body: content,
-    };
-
-    console.log(content, content.length)
-
-    if (utils_create_comment_IS_DEV) return content;
-
-    if (comment_id && !forceNewComment) return octokit.rest.issues.updateComment({...commentObj, comment_id});
-    return octokit.rest.issues.createComment(commentObj);
-}
-
-async function create_comment_deleteComment(octokit, context, comment_id) {
-    const {pull_request} = context.payload;
-
-    return octokit.rest.issues.deleteComment({
-        ...context.repo,
-        issue_number: pull_request.number,
-        comment_id,
-    });
-}
-
-;// CONCATENATED MODULE: ./adapters/utils/auth.js
-
-
-
-
-main.config();
-
-const utils_auth_ATLAN_INSTANCE_URL =
-  lib_core.getInput("ATLAN_INSTANCE_URL") || process.env.ATLAN_INSTANCE_URL;
-const utils_auth_ATLAN_API_TOKEN =
-  lib_core.getInput("ATLAN_API_TOKEN") || process.env.ATLAN_API_TOKEN;
-
-async function auth_auth() {
-  //Done
-  console.log("Inside auth in utils.js");
-  var myHeaders = {
-    authorization: `Bearer ${utils_auth_ATLAN_API_TOKEN}`,
-    "content-type": "application/json",
-  };
-
-  var requestOptions = {
-    method: "POST",
-    headers: myHeaders,
-  };
-
-  var response = await src_fetch(
-    `${utils_auth_ATLAN_INSTANCE_URL}/api/meta`,
-    requestOptions
-  ).catch((err) => {});
-  console.log("Completed auth in utils.js");
-  return response;
-}
-
-;// CONCATENATED MODULE: ./adapters/utils/index.js
-
-
-
-
-
-
 ;// CONCATENATED MODULE: ./adapters/api/get-downstream-assets.js
 
 
@@ -34220,6 +34241,7 @@ async function get_asset_getAsset({
   };
   console.log("Before SendSegmentEventOfIntegration");
   console.log("At line 92 inside getAsset");
+
   var response = await src_fetch(
     `${api_get_asset_ATLAN_INSTANCE_URL}/api/meta/search/indexsearch#findAssetByExactName`,
     requestOptions
@@ -34253,7 +34275,8 @@ async function get_asset_getAsset({
         name,
         api_get_asset_ATLAN_INSTANCE_URL,
         response,
-        integration
+        integration,
+        response.entities[0]
       ),
     };
 
@@ -34507,7 +34530,7 @@ This pull request has been added as a resource to all the assets modified. ✅
 
 main.config();
 const gitlab_integration_ATLAN_INSTANCE_URL = process.env.ATLAN_INSTANCE_URL;
-const { IS_DEV: gitlab_integration_IS_DEV } = process.env;
+const { IS_DEV: gitlab_integration_IS_DEV, IS_IGNORE_MODEL_ALIAS_MATCHING } = process.env;
 
 class GitLabIntegration extends IntegrationInterface {
   constructor(token) {
@@ -34577,13 +34600,14 @@ class GitLabIntegration extends IntegrationInterface {
     let totalChangedFiles = 0;
 
     for (const { fileName, filePath, headSHA } of changedFiles) {
-      const assetName = await this.getAssetName({
+      const aliasName = await this.getAssetName({
         //Complete
         gitlab,
         fileName,
         filePath,
         headSHA,
       });
+      const assetName = IS_IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
       console.log("At line 88");
       // const environments = getGitLabEnvironments();
       // console.log("At line 90", environments);
@@ -34692,13 +34716,14 @@ ${comments}`;
     if (changedFiles.length === 0) return;
 
     for (const { fileName, filePath, headSHA } of changedFiles) {
-      const assetName = await this.getAssetName({
+      const aliasName = await this.getAssetName({
         gitlab,
         fileName,
         filePath,
         headSHA,
       });
-      console.log("At line 202", assetName);
+      console.log("At line 202", aliasName);
+      const assetName = IS_IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
       // const environments = getGitLabEnvironments();
 
       let environment = null;
@@ -34717,7 +34742,7 @@ ${comments}`;
         integration: "gitlab",
       });
       console.log("At line 220 after getAsset in setResourceDownstream", asset);
-      if (!asset) continue;
+      if (asset.error) continue; //Changeed
 
       //Newly added Logic to not add PR when downstream assets are not available
 

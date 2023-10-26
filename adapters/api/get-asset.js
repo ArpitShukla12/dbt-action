@@ -94,6 +94,7 @@ export default async function getAsset({
   };
   console.log("Before SendSegmentEventOfIntegration");
   console.log("At line 92 inside getAsset");
+
   var response = await fetch(
     `${ATLAN_INSTANCE_URL}/api/meta/search/indexsearch#findAssetByExactName`,
     requestOptions

@@ -97,7 +97,7 @@ export default class GitLabIntegration extends IntegrationInterface {
     let comments = ``;
     let totalChangedFiles = 0;
 
-    for (const { fileName, filePath, headSHA } of changedFiles) {
+    for (const { fileName, filePath, headSHA, status } of changedFiles) {
       const aliasName = await this.getAssetName({
         //Complete
         gitlab,
@@ -126,6 +126,13 @@ export default class GitLabIntegration extends IntegrationInterface {
       });
 
       if (totalChangedFiles !== 0) comments += "\n\n---\n\n";
+
+      if (status === "added") {
+        comments += `### ${getConnectorImage("dbt")} <b>${fileName}</b> 🆕
+Its a new model and not present in Atlan yet, you'll see the downstream impact for it after its present in Atlan.`;
+        totalChangedFiles++;
+        continue;
+      }
 
       if (asset.error) {
         comments += asset.error;

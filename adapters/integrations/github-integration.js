@@ -217,7 +217,7 @@ ${comments}`;
         fileName,
         filePath,
       });
-
+      console.log("OII", assetName);
       // const environments = getEnvironments();
 
       let environment = null;
@@ -236,7 +236,10 @@ ${comments}`;
         integration: "github",
       });
 
-      if (asset.error) continue;
+      if (asset.error) {
+        console.log("Wuuuuuttt");
+        continue;
+      }
       console.log("At line 240 inside SRA", asset);
       const { guid: modelGuid } = asset;
       const { guid: tableAssetGuid } =
