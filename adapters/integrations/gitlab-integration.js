@@ -438,7 +438,7 @@ ${content}`;
     console.log("At line 351 Inside getChangedFiles");
     console.log("Changes", changes);
     var changedFiles = changes
-      .map(({ new_path, old_path }) => {
+      .map(({ new_path, old_path, new_file }) => {
         try {
           const [modelName] = new_path
             .match(/.*models\/(.*)\.sql/)[1]
@@ -447,7 +447,7 @@ ${content}`;
             .split(".");
           //Cross-check this with Jaagrav. ###
           if (modelName) {
-            if (old_path === null) {
+            if (new_file) {
               return {
                 fileName: modelName,
                 filePath: new_path,
