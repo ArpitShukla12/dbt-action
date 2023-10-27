@@ -31,6 +31,8 @@ export function getRenderDownstreamComment(asset,ATLAN_INSTANCE_URL,downstreamAs
                 ? getCertificationImage(asset.attributes.certificateStatus)
                 : ""
         }
+  
+  No downstream assets found.
         
   ${getImageURL("atlan-logo", 15, 15)} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${asset.guid}?utm_source=dbt_gitlab_action)`;
     }
