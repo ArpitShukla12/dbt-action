@@ -25578,7 +25578,7 @@ Set your repository action secrets [here](https://github.com/${context.payload.r
 function getSetResourceOnAssetComment() {
     return `🎊 Congrats on the merge!
 
-    This pull request has been added as a resource to all the assets modified. ✅`
+This pull request has been added as a resource to all the assets modified. ✅`
 }
 
 function getAssetInfo(ATLAN_INSTANCE_URL, asset, materialisedAsset, environmentName, projectName) {
