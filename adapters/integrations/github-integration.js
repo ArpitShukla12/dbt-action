@@ -221,28 +221,59 @@ export default class GitHubIntegration extends IntegrationInterface {
         continue;
       }
 
+      const materialisedAsset = asset.attributes.dbtModelSqlAssets[0];
+      const timeStart = Date.now();
+
+      const totalModifiedFiles = changedFiles.filter(
+        (i) => i.status === "modified"
+      ).length;
+
+      const downstreamAssets = await getDownstreamAssets(
+        asset,
+        materialisedAsset.guid,
+        totalModifiedFiles,
+        this.sendSegmentEventOfIntegration,
+        "github"
+      );
+
+      if (downstreamAssets.error) {
+        console.log(downstreamAssets.error);
+        continue;
+      }
+
+      this.sendSegmentEventOfIntegration({
+        action: "dbt_ci_action_downstream_unfurl",
+        properties: {
+          asset_guid: asset.guid,
+          asset_type: asset.typeName,
+          downstream_count: downstreamAssets.entities.length,
+          total_fetch_time: Date.now() - timeStart,
+        },
+      });
+
       const { guid: modelGuid } = asset;
       const { guid: tableAssetGuid } =
         asset?.attributes?.dbtModelSqlAssets?.[0];
 
       let PR_TITLE = pull_request.title;
 
-      if (modelGuid)
-        await createResource(
-          modelGuid,
-          PR_TITLE,
-          pull_request.html_url,
-          this.sendSegmentEventOfIntegration
-        );
+      if (downstreamAssets.entityCount != 0) {
+        if (modelGuid)
+          await createResource(
+            modelGuid,
+            PR_TITLE,
+            pull_request.html_url,
+            this.sendSegmentEventOfIntegration
+          );
 
-      if (tableAssetGuid)
-        await createResource(
-          tableAssetGuid,
-          PR_TITLE,
-          pull_request.html_url,
-          this.sendSegmentEventOfIntegration
-        );
-
+        if (tableAssetGuid)
+          await createResource(
+            tableAssetGuid,
+            PR_TITLE,
+            pull_request.html_url,
+            this.sendSegmentEventOfIntegration
+          );
+      }
       totalChangedFiles++;
     }
 

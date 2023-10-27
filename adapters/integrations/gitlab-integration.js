@@ -255,6 +255,16 @@ export default class GitLabIntegration extends IntegrationInterface {
         continue;
       }
 
+      this.sendSegmentEventOfIntegration({
+        action: "dbt_ci_action_downstream_unfurl",
+        properties: {
+          asset_guid: asset.guid,
+          asset_type: asset.typeName,
+          downstream_count: downstreamAssets.entities.length,
+          total_fetch_time: Date.now() - timeStart,
+        },
+      });
+
       const { guid: modelGuid } = asset;
       const { guid: tableAssetGuid } = asset.attributes.dbtModelSqlAssets[0];
 
