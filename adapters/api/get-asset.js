@@ -111,10 +111,18 @@ export default async function getAsset({
       });
     });
   console.log("<><><><><><><><><><><><><>");
-  if (!response?.entities?.length)
+  console.log("Checking");
+  if (!response) {
     return {
       error: getErrorModelNotFound(name),
     };
+  }
+  if (!response?.entities?.length) {
+    return {
+      error: getErrorModelNotFound(name),
+    };
+  }
+
   console.log(response);
   if (Array.isArray(response.entities)) {
     response.entities.sort((entityA, entityB) => {
