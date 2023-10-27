@@ -141,6 +141,7 @@ Its a new model and not present in Atlan yet, you'll see the downstream impact f
         continue;
       }
       console.log("At line 112", asset);
+      console.log("Lets see :", asset.attributes.dbtModelSqlAssets)
       //Cross-check this part once with Jaagrav.
 
       const totalModifiedFiles = changedFiles.filter(

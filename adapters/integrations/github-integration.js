@@ -63,10 +63,13 @@ export default class GitHubIntegration extends IntegrationInterface {
     }
 
     if (total_assets !== 0) {
-      this.sendSegmentEventOfIntegration("dbt_ci_action_run", {
-        //Complete
-        asset_count: total_assets,
-        total_time: Date.now() - timeStart,
+      this.sendSegmentEventOfIntegration({
+        action: "dbt_ci_action_run",
+        properties: {
+          //Complete
+          asset_count: total_assets,
+          total_time: Date.now() - timeStart,
+        },
       });
     }
   }
@@ -131,7 +134,9 @@ Its a new model and not present in Atlan yet, you'll see the downstream impact f
         //Complete
         asset,
         materialisedAsset.guid,
-        totalModifiedFiles
+        totalModifiedFiles,
+        this.sendSegmentEventOfIntegration,
+        "github"
       );
       console.log("After getDownstreamAssets");
       if (downstreamAssets.error) {
@@ -140,12 +145,15 @@ Its a new model and not present in Atlan yet, you'll see the downstream impact f
         continue;
       }
       console.log("At line 139 after getDownstreamAssets in printDownstream");
-      this.sendSegmentEventOfIntegration("dbt_ci_action_downstream_unfurl", {
-        //Complete
-        asset_guid: asset.guid,
-        asset_type: asset.typeName,
-        downstream_count: downstreamAssets.entities.length,
-        total_fetch_time: Date.now() - timeStart,
+      this.sendSegmentEventOfIntegration({
+        action: "dbt_ci_action_downstream_unfurl",
+        properties: {
+          //Complete
+          asset_guid: asset.guid,
+          asset_type: asset.typeName,
+          downstream_count: downstreamAssets.entities.length,
+          total_fetch_time: Date.now() - timeStart,
+        },
       });
       console.log("At line 147 after getDownstreamAssets in printDownstream");
 
