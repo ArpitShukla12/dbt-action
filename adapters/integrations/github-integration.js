@@ -43,6 +43,7 @@ export default class GitHubIntegration extends IntegrationInterface {
   async run() {
     const timeStart = Date.now();
     const { context } = github;
+    console.log("Hmm");
     console.log("Interesting over here");
     console.log("Lets seeee");
     console.log("Lets see again");
