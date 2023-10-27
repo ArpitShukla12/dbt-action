@@ -225,10 +225,12 @@ export default class GitHubIntegration extends IntegrationInterface {
       const { guid: tableAssetGuid } =
         asset?.attributes?.dbtModelSqlAssets?.[0];
 
+      let PR_TITLE = pull_request.title;
+
       if (modelGuid)
         await createResource(
           modelGuid,
-          "Pull Request on GitHub",
+          PR_TITLE,
           pull_request.html_url,
           this.sendSegmentEventOfIntegration
         );
@@ -236,7 +238,7 @@ export default class GitHubIntegration extends IntegrationInterface {
       if (tableAssetGuid)
         await createResource(
           tableAssetGuid,
-          "Pull Request on GitHub",
+          PR_TITLE,
           pull_request.html_url,
           this.sendSegmentEventOfIntegration
         );

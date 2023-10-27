@@ -25639,10 +25639,12 @@ class GitHubIntegration extends IntegrationInterface {
       const { guid: tableAssetGuid } =
         asset?.attributes?.dbtModelSqlAssets?.[0];
 
+      let PR_TITLE = pull_request.title;
+
       if (modelGuid)
         await createResource(
           modelGuid,
-          "Pull Request on GitHub",
+          PR_TITLE,
           pull_request.html_url,
           this.sendSegmentEventOfIntegration
         );
@@ -25650,7 +25652,7 @@ class GitHubIntegration extends IntegrationInterface {
       if (tableAssetGuid)
         await createResource(
           tableAssetGuid,
-          "Pull Request on GitHub",
+          PR_TITLE,
           pull_request.html_url,
           this.sendSegmentEventOfIntegration
         );
@@ -33529,8 +33531,6 @@ const {
 
 
 main.config();
-// const ATLAN_INSTANCE_URL = process.env.ATLAN_INSTANCE_URL;
-// const { IS_DEV, IS_IGNORE_MODEL_ALIAS_MATCHING } = process.env;
 
 class GitLabIntegration extends IntegrationInterface {
   constructor(token) {
@@ -33544,8 +33544,6 @@ class GitLabIntegration extends IntegrationInterface {
       host: "https://gitlab.com",
       token: this.token,
     });
-
-    // const { CI_PROJECT_PATH, CI_MERGE_REQUEST_IID } = process.env;
 
     if (!(await this.authIntegration({ gitlab })))
       throw { message: "Wrong API Token" };
@@ -33750,7 +33748,6 @@ class GitLabIntegration extends IntegrationInterface {
       const { guid: modelGuid } = asset;
       const { guid: tableAssetGuid } = asset.attributes.dbtModelSqlAssets[0];
 
-      // var { CI_COMMIT_MESSAGE } = process.env;
       var lines = CI_COMMIT_MESSAGE.split("\n");
       var CI_MERGE_REQUEST_TITLE = lines[2];
 
@@ -33784,7 +33781,7 @@ class GitLabIntegration extends IntegrationInterface {
 
   async authIntegration({ gitlab }) {
     const response = await auth();
-    // var { CI_PROJECT_NAME, GITLAB_USER_LOGIN } = process.env;
+
     const existingComment = await this.checkCommentExists({ gitlab });
     if (response?.status === 401) {
       await this.createIssueComment({
@@ -33821,9 +33818,6 @@ class GitLabIntegration extends IntegrationInterface {
     comment_id = null,
     forceNewComment = false,
   }) {
-    // const { CI_PROJECT_PATH, CI_MERGE_REQUEST_IID, CI_PROJECT_ID } =
-    //   process.env;
-
     content = `<!-- ActionCommentIdentifier: atlan-dbt-action -->
 ${content}`;
 
@@ -33848,7 +33842,6 @@ ${content}`;
 
   async sendSegmentEventOfIntegration({ action, properties }) {
     const domain = new URL(gitlab_integration_ATLAN_INSTANCE_URL).hostname;
-    // const { CI_PROJECT_PATH, CI_JOB_URL } = process.env;
 
     const raw = stringify({
       category: "integration",
@@ -33866,8 +33859,6 @@ ${content}`;
   }
 
   async getChangedFiles({ gitlab, diff_refs }) {
-    // const { CI_PROJECT_PATH, CI_MERGE_REQUEST_IID } = process.env;
-
     var changes = await gitlab.MergeRequests.allDiffs(
       CI_PROJECT_PATH,
       CI_MERGE_REQUEST_IID
@@ -33941,7 +33932,6 @@ ${content}`;
   }
 
   async getFileContents({ gitlab, filePath, headSHA }) {
-    // const { CI_PROJECT_PATH } = process.env;
     const { content } = await gitlab.RepositoryFiles.show(
       CI_PROJECT_PATH,
       filePath,
@@ -33953,9 +33943,6 @@ ${content}`;
   }
 
   async checkCommentExists({ gitlab }) {
-    // const { CI_PROJECT_PATH, CI_MERGE_REQUEST_IID, CI_PROJECT_ID } =
-    //   process.env;
-
     if (gitlab_integration_IS_DEV) return null;
 
     const comments = await gitlab.MergeRequestNotes.all(
@@ -33975,8 +33962,6 @@ ${content}`;
   }
 
   async deleteComment({ gitlab, comment_id }) {
-    // const { CI_PROJECT_PATH, CI_MERGE_REQUEST_IID } = process.env;
-
     return await gitlab.MergeRequestNotes.remove(
       CI_PROJECT_PATH,
       CI_MERGE_REQUEST_IID,
