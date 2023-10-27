@@ -128,8 +128,7 @@ export default async function getAsset({
         name,
         ATLAN_INSTANCE_URL,
         response,
-        integration,
-        response.entities[0]
+        integration
       ),
     };
 
