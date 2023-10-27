@@ -139,6 +139,7 @@ export default async function getAsset({
   }
   console.log("After sorting ", response);
   if (response?.entities?.length) {
+    console.log(response?.entities[0].guid);
     console.log("Over here", response?.entities[0]?.attributes);
   }
   console.log("Got Printed?");
