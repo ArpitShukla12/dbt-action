@@ -112,6 +112,30 @@ export default async function getAsset({
     });
   console.log("<><><><><><><><><><><><><>");
   console.log(response);
+  response.entities.sort((entityA, entityB) => {
+    const hasDbtModelSqlAssetsA =
+      entityA.attributes.dbtModelSqlAssets &&
+      entityA.attributes.dbtModelSqlAssets.length > 0;
+    const hasDbtModelSqlAssetsB =
+      entityB.attributes.dbtModelSqlAssets &&
+      entityB.attributes.dbtModelSqlAssets.length > 0;
+
+    if (hasDbtModelSqlAssetsA && !hasDbtModelSqlAssetsB) {
+      return -1; // entityA comes before entityB
+    } else if (!hasDbtModelSqlAssetsA && hasDbtModelSqlAssetsB) {
+      return 1; // entityB comes before entityA
+    }
+
+    // Primary sorting criterion: Latest createTime comes first
+    if (entityA.createTime > entityB.createTime) {
+      return -1;
+    } else if (entityA.createTime < entityB.createTime) {
+      return 1;
+    }
+
+    return 0; // No difference in sorting for these two entities
+  });
+  console.log("After sorting ", response);
   if (response?.entities?.length) {
     console.log("Over here", response?.entities[0]?.attributes);
   }

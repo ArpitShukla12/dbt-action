@@ -42,8 +42,6 @@ export default class GitLabIntegration extends IntegrationInterface {
   }
 
   async run() {
-    //Done
-    console.log("Run Gitlab");
     const timeStart = Date.now();
 
     const gitlab = new Gitlab({
@@ -54,7 +52,6 @@ export default class GitLabIntegration extends IntegrationInterface {
     const { CI_PROJECT_PATH, CI_MERGE_REQUEST_IID } = process.env;
 
     if (!(await this.authIntegration({ gitlab })))
-      //Done
       throw { message: "Wrong API Token" };
     console.log("CI_PROJECT_PATH", CI_PROJECT_PATH);
     console.log("CI_MERGE_REQUEST_IID", CI_MERGE_REQUEST_IID);
@@ -94,9 +91,6 @@ export default class GitLabIntegration extends IntegrationInterface {
   }
 
   async printDownstreamAssets({ gitlab, target_branch, diff_refs }) {
-    //Done
-    // Implementation for printing impact on GitHub
-    // Use this.token to access the token
     console.log("At line 74 inside printDownstreamAssets");
     const changedFiles = await this.getChangedFiles({ gitlab, diff_refs }); //Complete
     console.log("At line 75", changedFiles);
@@ -186,7 +180,6 @@ export default class GitLabIntegration extends IntegrationInterface {
 
       //Get Classification ??????????
       const classifications = await getClassifications({
-        //Complete
         sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
       });
 
@@ -261,7 +254,8 @@ export default class GitLabIntegration extends IntegrationInterface {
       if (asset.error) continue; //Changeed
 
       //Newly added Logic to not add PR when downstream assets are not available
-
+      const materialisedAsset = asset.attributes.dbtModelSqlAssets[0];
+      const timeStart = Date.now();
       const totalModifiedFiles = changedFiles.filter(
         (i) => i.status === "modified"
       ).length;
@@ -271,7 +265,7 @@ export default class GitLabIntegration extends IntegrationInterface {
       const downstreamAssets = await getDownstreamAssets(
         //Done
         asset,
-        guid,
+        materialisedAsset.guid,
         totalModifiedFiles,
         this.sendSegmentEventOfIntegration,
         "gitlab"
@@ -430,8 +424,6 @@ ${content}`;
   }
 
   async getChangedFiles({ gitlab, diff_refs }) {
-    //Done
-    //Complete
     console.log("At line 344 Inside getChangedFiles");
     const { CI_PROJECT_PATH, CI_MERGE_REQUEST_IID } = process.env;
     console.log(CI_PROJECT_PATH, CI_MERGE_REQUEST_IID);

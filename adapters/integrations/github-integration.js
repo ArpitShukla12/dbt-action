@@ -41,24 +41,16 @@ export default class GitHubIntegration extends IntegrationInterface {
   }
 
   async run() {
-    //Done
-    //Complete
-    console.log("Run Github");
-    console.log(IS_DEV);
     const timeStart = Date.now();
     const { context } = github;
     console.log("Context:", context);
     const octokit = github.getOctokit(this.token);
     const { pull_request } = context?.payload;
     console.log(pull_request, "hii");
-
-    console.log("Interesting");
     const { state, merged } = pull_request;
     console.log("state", state);
     console.log("merged", merged);
     if (!(await this.authIntegration({ octokit, context }))) {
-      //DONE
-      //Complete
       throw { message: "Wrong API Token" };
     }
 
@@ -75,7 +67,6 @@ export default class GitHubIntegration extends IntegrationInterface {
       this.sendSegmentEventOfIntegration({
         action: "dbt_ci_action_run",
         properties: {
-          //Complete
           asset_count: total_assets,
           total_time: Date.now() - timeStart,
         },
@@ -84,7 +75,6 @@ export default class GitHubIntegration extends IntegrationInterface {
   }
 
   async printDownstreamAssets({ octokit, context }) {
-    //Done
     console.log("Brother");
     const changedFiles = await this.getChangedFiles({ octokit, context }); //Complete
     let comments = ``;
@@ -156,7 +146,6 @@ export default class GitHubIntegration extends IntegrationInterface {
       this.sendSegmentEventOfIntegration({
         action: "dbt_ci_action_downstream_unfurl",
         properties: {
-          //Complete
           asset_guid: asset.guid,
           asset_type: asset.typeName,
           downstream_count: downstreamAssets.entities.length,
@@ -166,7 +155,6 @@ export default class GitHubIntegration extends IntegrationInterface {
       console.log("At line 147 after getDownstreamAssets in printDownstream");
 
       const classifications = await getClassifications({
-        //Complete
         sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
       });
 
@@ -211,8 +199,6 @@ export default class GitHubIntegration extends IntegrationInterface {
   }
 
   async setResourceOnAsset({ octokit, context }) {
-    //Done
-    //Complete
     console.log("At line 205 inside SRA");
     const changedFiles = await this.getChangedFiles({ octokit, context }); //Complete
     const { pull_request } = context.payload;
