@@ -26,9 +26,12 @@ export default async function getClassifications({
   )
     .then((e) => e.json())
     .catch((err) => {
-      sendSegmentEventOfIntegration("dbt_ci_action_failure", {
-        reason: "failed_to_get_classifications",
-        msg: err,
+      sendSegmentEventOfIntegration({
+        action: "dbt_ci_action_failure",
+        properties: {
+          reason: "failed_to_get_classifications",
+          msg: err,
+        },
       });
     });
 
