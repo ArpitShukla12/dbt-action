@@ -111,6 +111,10 @@ export default async function getAsset({
       });
     });
   console.log("<><><><><><><><><><><><><>");
+  if (!response?.entities?.length)
+    return {
+      error: getErrorModelNotFound(name),
+    };
   console.log(response);
   if (Array.isArray(response.entities)) {
     response.entities.sort((entityA, entityB) => {
@@ -144,10 +148,6 @@ export default async function getAsset({
   }
   console.log("Got Printed?");
   //Test both the below comments as we have replaced with functions
-  if (!response?.entities?.length)
-    return {
-      error: getErrorModelNotFound(name),
-    };
 
   if (!response?.entities[0]?.attributes?.dbtModelSqlAssets?.length > 0)
     return {
