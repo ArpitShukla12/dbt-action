@@ -25316,6 +25316,7 @@ async function getAsset({
         },
       });
     });
+  console.log(response);
   console.log("<><><><><><><><><><><><><>");
   console.log("Checking");
   if (!response) {
