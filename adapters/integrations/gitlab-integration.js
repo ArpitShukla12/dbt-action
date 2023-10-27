@@ -26,7 +26,7 @@ import {
   getErrorResponseStatusUndefined,
   getRenderDownstreamComment,
 } from "../templates/gitlab-integration.js";
-import { getNewModelAddedComment } from "../templates/atlan.js";
+import { getNewModelAddedComment, getBaseComment } from "../templates/atlan.js";
 dotenv.config();
 const ATLAN_INSTANCE_URL = process.env.ATLAN_INSTANCE_URL;
 const { IS_DEV, IS_IGNORE_MODEL_ALIAS_MATCHING } = process.env;
@@ -189,12 +189,7 @@ export default class GitLabIntegration extends IntegrationInterface {
       totalChangedFiles++;
     }
 
-    comments = `### ${getImageURL("atlan-logo", 15, 15)} Atlan impact analysis
-Here is your downstream impact analysis for **${totalChangedFiles} ${
-      totalChangedFiles > 1 ? "models" : "model"
-    }** you have edited.
-
-${comments}`;
+    comments = getBaseComment(totalChangedFiles, comments);
     console.log("At line 163 in printDownstreamAssets");
     const existingComment = await this.checkCommentExists({ gitlab }); //Complete
     console.log("At line 165 after checkCommentExists", existingComment);
