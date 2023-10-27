@@ -22463,7 +22463,7 @@ var stringify = __nccwpck_require__(7073);
 ;// CONCATENATED MODULE: ./adapters/utils/get-image-url.js
 
 
-function get_image_url_getImageURL(name, height = 20, width = 20) {
+function getImageURL(name, height = 20, width = 20) {
     try {
         return `<img src="${hosted_images[name].url}" alt="${hosted_images[name].alt}" height="${height}" width="${width}"/>`;
     } catch (e) {
@@ -22472,12 +22472,12 @@ function get_image_url_getImageURL(name, height = 20, width = 20) {
     }
 }
 
-function get_image_url_getConnectorImage(connectorName) {
-    return get_image_url_getImageURL(`connector-${connectorName.toLowerCase()}`, 15, 15);
+function getConnectorImage(connectorName) {
+    return getImageURL(`connector-${connectorName.toLowerCase()}`, 15, 15);
 }
 
-function get_image_url_getCertificationImage(certificationStatus) {
-    return get_image_url_getImageURL(`certification-${certificationStatus.toLowerCase()}`, 15, 15);
+function getCertificationImage(certificationStatus) {
+    return getImageURL(`certification-${certificationStatus.toLowerCase()}`, 15, 15);
 }
 
 ;// CONCATENATED MODULE: ./adapters/utils/hosted-images.js
@@ -22612,244 +22612,15 @@ function get_image_url_getCertificationImage(certificationStatus) {
     }
 });
 
-// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
-var lib_core = __nccwpck_require__(2186);
-;// CONCATENATED MODULE: ./adapters/utils/get-environment-variables.js
-
-
-
-main.config();
-
-const {
-  IS_DEV,
-  ATLAN_INSTANCE_URL,
-  ATLAN_API_TOKEN,
-  IGNORE_MODEL_ALIAS_MATCHING,
-} = process.env;
-
-const isDev = () => IS_DEV === "true";
-const getInstanceUrl = () => {
-  if (ATLAN_INSTANCE_URL) return new URL(ATLAN_INSTANCE_URL).origin;
-  return new URL(lib_core.getInput("ATLAN_INSTANCE_URL")).origin;
-};
-const getAPIToken = () => {
-  if (ATLAN_API_TOKEN) return ATLAN_API_TOKEN;
-  return lib_core.getInput("ATLAN_API_TOKEN");
-};
-const getEnvironments = () => {
-  return core.getInput("DBT_ENVIRONMENT_BRANCH_MAP")
-    ? core
-        .getInput("DBT_ENVIRONMENT_BRANCH_MAP")
-        .trim()
-        ?.split("\n")
-        ?.map((i) => i.split(":").map((i) => i.trim()))
-    : [];
-};
-const isIgnoreModelAliasMatching = () =>
-  lib_core.getInput("IGNORE_MODEL_ALIAS_MATCHING") === "true";
-
-function getGitLabEnvironments() {
-  const { DBT_ENVIRONMENT_BRANCH_MAP } = process.env;
-
-  if (DBT_ENVIRONMENT_BRANCH_MAP) {
-    const environmentLines = DBT_ENVIRONMENT_BRANCH_MAP.split("\n");
-    const environmentMap = {};
-
-    environmentLines.forEach((line) => {
-      const [environment, branch] = line.split(":").map((item) => item.trim());
-      if (environment && branch) {
-        environmentMap[environment] = branch;
-      }
-    });
-
-    return environmentMap;
-  } else {
-    return {};
-  }
-}
-
 ;// CONCATENATED MODULE: ./adapters/utils/create-comment.js
-
-
-
-const create_comment_IS_DEV = isDev();
-const create_comment_ATLAN_INSTANCE_URL =
-    getInstanceUrl();
-
 function truncate(value) {
-    if (typeof value === 'string')
-        return value.length > 100 ? value.substring(0, 100) + "..." : value;
-    if (Array.isArray(value))
-        return value.length > 10 ? value.slice(0, 10).join(", ") + "..." : value.join(", ");
-    return ""
-}
-
-async function renderDownstreamAssetsComment(
-    octokit,
-    context,
-    asset,
-    materialisedAsset,
-    downstreamAssets,
-    classifications
-) {
-    // Mapping the downstream assets data
-    let impactedData = downstreamAssets.entities.map(
-        ({
-             displayText,
-             guid,
-             typeName,
-             attributes,
-             meanings,
-             classificationNames
-         }) => {
-            // Modifying the typeName and getting the readableTypeName
-            let readableTypeName = typeName
-                .toLowerCase()
-                .replace(attributes.connectorName, "")
-                .toUpperCase();
-
-            // Filtering classifications based on classificationNames
-            let classificationsObj = classifications.filter(({name}) =>
-                classificationNames.includes(name)
-            );
-
-            // Modifying the readableTypeName
-            readableTypeName = readableTypeName.charAt(0).toUpperCase() + readableTypeName.slice(1).toLowerCase();
-
-            return [
-                guid,
-                truncate(displayText),
-                truncate(attributes.connectorName),
-                truncate(readableTypeName),
-                truncate(attributes?.userDescription || attributes?.description || ""),
-                attributes?.certificateStatus || "",
-                truncate([...attributes?.ownerUsers, ...attributes?.ownerGroups] || []),
-                truncate(meanings.map(({displayText, termGuid}) =>
-                    `[${displayText}](${create_comment_ATLAN_INSTANCE_URL}/assets/${termGuid}/overview?utm_source=dbt_github_action)`
-                )),
-                truncate(classificationsObj?.map(({name, displayName}) =>
-                    `\`${displayName}\``
-                )),
-                attributes?.sourceURL || ""
-            ];
-        }
-    );
-
-    // Sorting the impactedData first by typeName and then by connectorName
-    impactedData = impactedData.sort((a, b) => a[3].localeCompare(b[3]));
-    impactedData = impactedData.sort((a, b) => a[2].localeCompare(b[2]));
-
-    // Creating rows for the downstream table
-    let rows = impactedData.map(
-        ([guid, displayText, connectorName, typeName, description, certificateStatus, owners, meanings, classifications, sourceUrl]) => {
-            // Getting connector and certification images
-            const connectorImage = getConnectorImage(connectorName);
-            const certificationImage = certificateStatus ? getCertificationImage(certificateStatus) : "";
-
-            return [
-                `${connectorImage} [${displayText}](${create_comment_ATLAN_INSTANCE_URL}/assets/${guid}/overview?utm_source=dbt_github_action) ${certificationImage}`,
-                `\`${typeName}\``,
-                description,
-                owners,
-                meanings,
-                classifications,
-                sourceUrl ? `[Open in ${connectorName}](${sourceUrl})` : " "
-            ];
-        }
-    );
-
-    const environmentName = materialisedAsset?.attributes?.assetDbtEnvironmentName
-    const projectName = materialisedAsset?.attributes?.assetDbtProjectName
-    // Generating asset information
-    const assetInfo = `### ${getConnectorImage(asset.attributes.connectorName)} [${
-        asset.displayText
-    }](${create_comment_ATLAN_INSTANCE_URL}/assets/${asset.guid}/overview?utm_source=dbt_github_action) ${
-        asset.attributes?.certificateStatus
-            ? getCertificationImage(asset.attributes.certificateStatus)
-            : ""
-    }
-Materialised asset: ${getConnectorImage(materialisedAsset.attributes.connectorName)} [${
-        materialisedAsset.attributes.name
-    }](${create_comment_ATLAN_INSTANCE_URL}/assets/${materialisedAsset.guid}/overview?utm_source=dbt_github_action) ${
-        materialisedAsset.attributes?.certificateStatus
-            ? getCertificationImage(materialisedAsset.attributes.certificateStatus)
-            : ""
-    }${environmentName ? ` | Environment Name: \`${environmentName}\`` : ''}${projectName ? ` | Project Name: \`${projectName}\`` : ''}`;
-
-    // Generating the downstream table
-    const downstreamTable = `<details><summary><b>${downstreamAssets.entityCount} downstream assets 👇</b></summary><br/>
-
-Name | Type | Description | Owners | Terms | Classifications | Source URL
---- | --- | --- | --- | --- | --- | ---       
-${rows.map((row) => row.map(i => i.replace(/\|/g, "•").replace(/\n/g, "")).join(" | ")).join("\n")}
-
-${downstreamAssets.hasMore ? `[See more downstream assets at Atlan](${create_comment_ATLAN_INSTANCE_URL}/assets/${materialisedAsset.guid}/lineage?utm_source=dbt_github_action)` : ""}
-
-</details>`;
-
-    // Generating the "View asset in Atlan" button
-    const viewAssetButton = `${getImageURL("atlan-logo", 15, 15)} [View asset in Atlan](${create_comment_ATLAN_INSTANCE_URL}/assets/${asset.guid}/overview?utm_source=dbt_github_action)`;
-
-    // Generating the final comment based on the presence of downstream assets
-    if (downstreamAssets.entities.length > 0) {
-        return `${assetInfo}
-        
-${downstreamTable}
-
-${viewAssetButton}`;
-    } else {
-        return `${assetInfo}
-        
-No downstream assets found.
-
-${viewAssetButton}`;
-    }
-}
-
-
-async function checkCommentExists(octokit, context) {
-    if (create_comment_IS_DEV) return null;
-
-    const {pull_request} = context.payload;
-
-    const comments = await octokit.rest.issues.listComments({
-        ...context.repo,
-        issue_number: pull_request.number,
-    });
-
-    return comments.data.find(
-        (comment) => comment.user.login === "github-actions[bot]" && comment.body.includes("<!-- ActionCommentIdentifier: atlan-dbt-action -->")
-    );
-}
-
-async function createIssueComment(octokit, context, content, comment_id = null, forceNewComment = false) {
-    const {pull_request} = context.payload;
-
-    content = `<!-- ActionCommentIdentifier: atlan-dbt-action -->
-${content}`
-
-    const commentObj = {
-        ...context.repo,
-        issue_number: pull_request.number,
-        body: content,
-    };
-
-    console.log(content, content.length)
-
-    if (create_comment_IS_DEV) return content;
-
-    if (comment_id && !forceNewComment) return octokit.rest.issues.updateComment({...commentObj, comment_id});
-    return octokit.rest.issues.createComment(commentObj);
-}
-
-async function deleteComment(octokit, context, comment_id) {
-    const {pull_request} = context.payload;
-
-    return octokit.rest.issues.deleteComment({
-        ...context.repo,
-        issue_number: pull_request.number,
-        comment_id,
-    });
+  if (typeof value === "string")
+    return value.length > 100 ? value.substring(0, 100) + "..." : value;
+  if (Array.isArray(value))
+    return value.length > 10
+      ? value.slice(0, 10).join(", ") + "..."
+      : value.join(", ");
+  return "";
 }
 
 ;// CONCATENATED MODULE: external "node:http"
@@ -25001,6 +24772,8 @@ function fixResponseChunkedTransferBadEnding(request, errorCallback) {
 	});
 }
 
+// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
+var lib_core = __nccwpck_require__(2186);
 ;// CONCATENATED MODULE: ./adapters/utils/auth.js
 
 
@@ -25008,16 +24781,14 @@ function fixResponseChunkedTransferBadEnding(request, errorCallback) {
 
 main.config();
 
-const auth_ATLAN_INSTANCE_URL =
+const ATLAN_INSTANCE_URL =
   lib_core.getInput("ATLAN_INSTANCE_URL") || process.env.ATLAN_INSTANCE_URL;
-const auth_ATLAN_API_TOKEN =
+const ATLAN_API_TOKEN =
   lib_core.getInput("ATLAN_API_TOKEN") || process.env.ATLAN_API_TOKEN;
 
 async function auth() {
-  //Done
-  console.log("Inside auth in utils.js");
   var myHeaders = {
-    authorization: `Bearer ${auth_ATLAN_API_TOKEN}`,
+    authorization: `Bearer ${ATLAN_API_TOKEN}`,
     "content-type": "application/json",
   };
 
@@ -25027,15 +24798,68 @@ async function auth() {
   };
 
   var response = await src_fetch(
-    `${auth_ATLAN_INSTANCE_URL}/api/meta`,
+    `${ATLAN_INSTANCE_URL}/api/meta`,
     requestOptions
   ).catch((err) => {});
-  console.log("Completed auth in utils.js");
+
   return response;
 }
 
-;// CONCATENATED MODULE: ./adapters/utils/index.js
+;// CONCATENATED MODULE: ./adapters/utils/get-environment-variables.js
 
+
+
+main.config();
+
+const {
+  IS_DEV,
+  ATLAN_INSTANCE_URL: get_environment_variables_ATLAN_INSTANCE_URL,
+  ATLAN_API_TOKEN: get_environment_variables_ATLAN_API_TOKEN,
+  IGNORE_MODEL_ALIAS_MATCHING,
+} = process.env;
+
+const isDev = () => IS_DEV === "true";
+const getInstanceUrl = () => {
+  if (get_environment_variables_ATLAN_INSTANCE_URL) return new URL(get_environment_variables_ATLAN_INSTANCE_URL).origin;
+  return new URL(lib_core.getInput("ATLAN_INSTANCE_URL")).origin;
+};
+const getAPIToken = () => {
+  if (get_environment_variables_ATLAN_API_TOKEN) return get_environment_variables_ATLAN_API_TOKEN;
+  return lib_core.getInput("ATLAN_API_TOKEN");
+};
+const getEnvironments = () => {
+  return core.getInput("DBT_ENVIRONMENT_BRANCH_MAP")
+    ? core
+        .getInput("DBT_ENVIRONMENT_BRANCH_MAP")
+        .trim()
+        ?.split("\n")
+        ?.map((i) => i.split(":").map((i) => i.trim()))
+    : [];
+};
+const isIgnoreModelAliasMatching = () =>
+  lib_core.getInput("IGNORE_MODEL_ALIAS_MATCHING") === "true";
+
+function getGitLabEnvironments() {
+  const { DBT_ENVIRONMENT_BRANCH_MAP } = process.env;
+
+  if (DBT_ENVIRONMENT_BRANCH_MAP) {
+    const environmentLines = DBT_ENVIRONMENT_BRANCH_MAP.split("\n");
+    const environmentMap = {};
+
+    environmentLines.forEach((line) => {
+      const [environment, branch] = line.split(":").map((item) => item.trim());
+      if (environment && branch) {
+        environmentMap[environment] = branch;
+      }
+    });
+
+    return environmentMap;
+  } else {
+    return {};
+  }
+}
+
+;// CONCATENATED MODULE: ./adapters/utils/index.js
 
 
 
@@ -25058,7 +24882,7 @@ const get_downstream_assets_ATLAN_API_TOKEN =
 
 const ASSETS_LIMIT = 100;
 
-async function getDownstreamAssets( //Done
+async function getDownstreamAssets(
   asset,
   guid,
   totalModifiedFiles,
@@ -25069,7 +24893,7 @@ async function getDownstreamAssets( //Done
     authorization: `Bearer ${get_downstream_assets_ATLAN_API_TOKEN}`,
     "content-type": "application/json",
   };
-  console.log("At line 31 inside getDownstreamAssets function");
+
   var raw = stringify({
     guid: guid,
     size: Math.max(Math.ceil(ASSETS_LIMIT / totalModifiedFiles), 1),
@@ -25117,19 +24941,19 @@ async function getDownstreamAssets( //Done
   };
 
   var handleError = (err) => {
-    const comment = `### ${get_image_url_getConnectorImage(
+    const comment = `### ${getConnectorImage(
       asset.attributes.connectorName
     )} [${asset.displayText}](${get_downstream_assets_ATLAN_INSTANCE_URL}/assets/${
       asset.guid
     }/overview?utm_source=dbt_${integration}_action) ${
       asset.attributes?.certificateStatus
-        ? get_image_url_getCertificationImage(asset.attributes.certificateStatus)
+        ? getCertificationImage(asset.attributes.certificateStatus)
         : ""
     }
             
 _Failed to fetch impacted assets._
             
-${get_image_url_getImageURL(
+${getImageURL(
   "atlan-logo",
   15,
   15
@@ -25167,7 +24991,6 @@ ${get_image_url_getImageURL(
         error: handleError(err),
       };
     });
-  console.log("At line 126 inside getDownstreamAssets function", response);
   if (response.error) return response;
 
   return response;
@@ -25194,12 +25017,12 @@ function getErrorDoesNotMaterialize(
 }
 
 function getNewModelAddedComment(fileName) {
-  return `### ${get_image_url_getConnectorImage("dbt")} <b>${fileName}</b> 🆕
+  return `### ${getConnectorImage("dbt")} <b>${fileName}</b> 🆕
   Its a new model and not present in Atlan yet, you'll see the downstream impact for it after its present in Atlan.`
 }
 
 function getBaseComment(totalChangedFiles, comments) {
-  return `### ${get_image_url_getImageURL("atlan-logo", 15, 15)} Atlan impact analysis
+  return `### ${getImageURL("atlan-logo", 15, 15)} Atlan impact analysis
   Here is your downstream impact analysis for **${totalChangedFiles} ${
         totalChangedFiles > 1 ? "models" : "model"
       }** you have edited.
@@ -25221,7 +25044,6 @@ const get_asset_ATLAN_API_TOKEN =
   lib_core.getInput("ATLAN_API_TOKEN") || process.env.ATLAN_API_TOKEN;
 
 async function getAsset({
-  //Done
   name,
   sendSegmentEventOfIntegration,
   environment,
@@ -25231,7 +25053,7 @@ async function getAsset({
     Authorization: `Bearer ${get_asset_ATLAN_API_TOKEN}`,
     "Content-Type": "application/json",
   };
-  console.log("At line 24 inside getAsset function");
+
   var raw = stringify({
     dsl: {
       from: 0,
@@ -25298,8 +25120,6 @@ async function getAsset({
     headers: myHeaders,
     body: raw,
   };
-  console.log("Before SendSegmentEventOfIntegration");
-  console.log("At line 92 inside getAsset");
 
   var response = await src_fetch(
     `${get_asset_ATLAN_INSTANCE_URL}/api/meta/search/indexsearch#findAssetByExactName`,
@@ -25316,21 +25136,13 @@ async function getAsset({
         },
       });
     });
-  console.log(response);
-  console.log("<><><><><><><><><><><><><>");
-  console.log("Checking");
-  if (!response) {
-    return {
-      error: getErrorModelNotFound(name),
-    };
-  }
+
   if (!response?.entities?.length) {
     return {
       error: getErrorModelNotFound(name),
     };
   }
 
-  console.log(response);
   if (Array.isArray(response.entities)) {
     response.entities.sort((entityA, entityB) => {
       const hasDbtModelSqlAssetsA =
@@ -25356,13 +25168,6 @@ async function getAsset({
       return 0; // No difference in sorting for these two entities
     });
   }
-  console.log("After sorting ", response);
-  if (response?.entities?.length) {
-    console.log(response?.entities[0].guid);
-    console.log("Over here", response?.entities[0]?.attributes);
-  }
-  console.log("Got Printed?");
-  //Test both the below comments as we have replaced with functions
 
   if (!response?.entities[0]?.attributes?.dbtModelSqlAssets?.length > 0)
     return {
@@ -25378,8 +25183,6 @@ async function getAsset({
 }
 
 ;// CONCATENATED MODULE: ./adapters/api/get-classifications.js
-
-
 
 
 
@@ -25441,7 +25244,7 @@ const parse = uuid_dist/* parse */.Qc;
 const create_resource_ATLAN_INSTANCE_URL = getInstanceUrl();
 const create_resource_ATLAN_API_TOKEN = getAPIToken();
 
-async function createResource( //Done
+async function createResource(
   guid,
   name,
   link,
@@ -25494,10 +25297,6 @@ async function createResource( //Done
       });
     });
 
-  console.log("Created Resource:", response);
-  console.log("UPDATE : ", response.mutatedEntities.UPDATE);
-  console.log("CREATE : ", response.mutatedEntities.CREATE);
-
   return response;
 }
 
@@ -25519,7 +25318,7 @@ async function sendSegmentEvent(action, body) {
     authorization: `Bearer ${segment_ATLAN_API_TOKEN}`,
     "content-type": "application/json",
   };
-  console.log("At line 18 inide sendSegmentEvent");
+
   const requestOptions = {
     method: "POST",
     headers: myHeaders,
@@ -25541,7 +25340,7 @@ async function sendSegmentEvent(action, body) {
   } else {
     console.log("send segment event", action, body);
   }
-  console.log("At line 40 inside sendSegmentEvent");
+
   return response;
 }
 
@@ -25582,22 +25381,22 @@ This pull request has been added as a resource to all the assets modified. ✅`
 }
 
 function getAssetInfo(ATLAN_INSTANCE_URL, asset, materialisedAsset, environmentName, projectName) {
-    return `### ${get_image_url_getConnectorImage(
+    return `### ${getConnectorImage(
         asset.attributes.connectorName
       )} [${asset.displayText}](${ATLAN_INSTANCE_URL}/assets/${
         asset.guid
       }/overview?utm_source=dbt_github_action) ${
         asset.attributes?.certificateStatus
-          ? get_image_url_getCertificationImage(asset.attributes.certificateStatus)
+          ? getCertificationImage(asset.attributes.certificateStatus)
           : ""
       }
-  Materialised asset: ${get_image_url_getConnectorImage(
+  Materialised asset: ${getConnectorImage(
         materialisedAsset.attributes.connectorName
       )} [${materialisedAsset.attributes.name}](${ATLAN_INSTANCE_URL}/assets/${
         materialisedAsset.guid
       }/overview?utm_source=dbt_github_action) ${
         materialisedAsset.attributes?.certificateStatus
-          ? get_image_url_getCertificationImage(materialisedAsset.attributes.certificateStatus)
+          ? getCertificationImage(materialisedAsset.attributes.certificateStatus)
           : ""
       }${environmentName ? ` | Environment Name: \`${environmentName}\`` : ""}${
         projectName ? ` | Project Name: \`${projectName}\`` : ""
@@ -25627,7 +25426,7 @@ function getDownstreamTable(ATLAN_INSTANCE_URL, downstreamAssets, rows, material
 }
 
 function getViewAssetButton(ATLAN_INSTANCE_URL, asset) {
-    return `${get_image_url_getImageURL(
+    return `${getImageURL(
         "atlan-logo",
         15,
         15
@@ -25658,27 +25457,19 @@ class GitHubIntegration extends IntegrationInterface {
   async run() {
     const timeStart = Date.now();
     const { context } = github;
-    console.log("Hmm");
-    console.log("Interesting over here");
-    console.log("Lets seeee");
-    console.log("Lets see again");
-    console.log("Context:", context);
     const octokit = github.getOctokit(this.token);
     const { pull_request } = context?.payload;
-    console.log(pull_request, "hii");
     const { state, merged } = pull_request;
-    console.log("state", state);
-    console.log("merged", merged);
+
     if (!(await this.authIntegration({ octokit, context }))) {
       throw { message: "Wrong API Token" };
     }
 
     let total_assets = 0;
-    console.log("After auth Integration");
+
     if (state === "open") {
       total_assets = await this.printDownstreamAssets({ octokit, context });
     } else if (state === "closed" && merged) {
-      console.log("Hmm");
       total_assets = await this.setResourceOnAsset({ octokit, context });
     }
 
@@ -25694,23 +25485,20 @@ class GitHubIntegration extends IntegrationInterface {
   }
 
   async printDownstreamAssets({ octokit, context }) {
-    console.log("Brother");
-    const changedFiles = await this.getChangedFiles({ octokit, context }); //Complete
+    const changedFiles = await this.getChangedFiles({ octokit, context });
     let comments = ``;
     let totalChangedFiles = 0;
 
     for (const { fileName, filePath, status } of changedFiles) {
       const aliasName = await this.getAssetName({
-        //Complete
         octokit,
         context,
         fileName,
         filePath,
       });
-      const assetName = isIgnoreModelAliasMatching() ? fileName : aliasName; //Complete
-      console.log("acha2", aliasName);
-      // const environments = getEnvironments();
+      const assetName = isIgnoreModelAliasMatching() ? fileName : aliasName;
 
+      // const environments = getEnvironments();
       let environment = null;
       // for (const [baseBranchName, environmentName] of environments) {
       //   if (baseBranchName === context.payload.pull_request.base.ref) {
@@ -25718,50 +25506,48 @@ class GitHubIntegration extends IntegrationInterface {
       //     break;
       //   }
       // }
-      console.log("Before getAsset");
       const asset = await getAsset({
-        //Done
         name: assetName,
         sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
         environment: environment,
         integration: "github",
       });
-      console.log("After getAsset");
+
       if (totalChangedFiles !== 0) comments += "\n\n---\n\n";
-      console.log("Status: ", status);
+
       if (status === "added") {
         comments += getNewModelAddedComment(fileName);
         totalChangedFiles++;
         continue;
       }
-      console.log("Before filtering");
-      console.log("Asset", asset);
+
       if (asset.error) {
         comments += asset.error;
         totalChangedFiles++;
         continue;
       }
+
       const materialisedAsset = asset.attributes.dbtModelSqlAssets[0];
       const timeStart = Date.now();
+
       const totalModifiedFiles = changedFiles.filter(
         (i) => i.status === "modified"
       ).length;
-      console.log("Before getDownstreamAssets");
+
       const downstreamAssets = await getDownstreamAssets(
-        //Complete
         asset,
         materialisedAsset.guid,
         totalModifiedFiles,
         this.sendSegmentEventOfIntegration,
         "github"
       );
-      console.log("After getDownstreamAssets");
+
       if (downstreamAssets.error) {
         comments += downstreamAssets.error;
         totalChangedFiles++;
         continue;
       }
-      console.log("At line 139 after getDownstreamAssets in printDownstream");
+
       this.sendSegmentEventOfIntegration({
         action: "dbt_ci_action_downstream_unfurl",
         properties: {
@@ -25771,15 +25557,12 @@ class GitHubIntegration extends IntegrationInterface {
           total_fetch_time: Date.now() - timeStart,
         },
       });
-      console.log("At line 147 after getDownstreamAssets in printDownstream");
 
       const classifications = await getClassifications({
         sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
       });
 
       const comment = await this.renderDownstreamAssetsComment({
-        //Done
-        //Complete
         octokit,
         context,
         asset,
@@ -25795,11 +25578,10 @@ class GitHubIntegration extends IntegrationInterface {
 
     comments = getBaseComment(totalChangedFiles, comments);
 
-    const existingComment = await this.checkCommentExists({ octokit, context }); //Complete
+    const existingComment = await this.checkCommentExists({ octokit, context });
 
     if (totalChangedFiles > 0)
       await this.createIssueComment({
-        //Complete
         octokit,
         context,
         content: comments,
@@ -25808,7 +25590,6 @@ class GitHubIntegration extends IntegrationInterface {
 
     if (totalChangedFiles === 0 && existingComment)
       await this.deleteComment({
-        //Complete
         octokit,
         context,
         comment_id: existingComment.id,
@@ -25818,24 +25599,23 @@ class GitHubIntegration extends IntegrationInterface {
   }
 
   async setResourceOnAsset({ octokit, context }) {
-    console.log("At line 205 inside SRA");
-    const changedFiles = await this.getChangedFiles({ octokit, context }); //Complete
+    const changedFiles = await this.getChangedFiles({ octokit, context });
     const { pull_request } = context.payload;
     var totalChangedFiles = 0;
-    console.log("At line 209 inside SRA", changedFiles);
+
     if (changedFiles.length === 0) return;
 
     for (const { fileName, filePath } of changedFiles) {
-      const assetName = await this.getAssetName({
-        //Complete
+      const aliasName = await this.getAssetName({
         octokit,
         context,
         fileName,
         filePath,
       });
-      console.log("OII", assetName);
-      // const environments = getEnvironments();
 
+      const assetName = isIgnoreModelAliasMatching() ? fileName : aliasName;
+
+      // const environments = getEnvironments();
       let environment = null;
       // for (const [baseBranchName, environmentName] of environments) {
       //   if (baseBranchName === context.payload.pull_request.base.ref) {
@@ -25845,7 +25625,6 @@ class GitHubIntegration extends IntegrationInterface {
       // }
 
       const asset = await getAsset({
-        //Done
         name: assetName,
         sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
         environment: environment,
@@ -25853,59 +25632,49 @@ class GitHubIntegration extends IntegrationInterface {
       });
 
       if (asset.error) {
-        console.log("Wuuuuuttt");
         continue;
       }
-      console.log("At line 240 inside SRA", asset);
+
       const { guid: modelGuid } = asset;
       const { guid: tableAssetGuid } =
         asset?.attributes?.dbtModelSqlAssets?.[0];
-      console.log("At line 244 inside SRA", modelGuid, tableAssetGuid);
+
       if (modelGuid)
         await createResource(
-          //Complete
           modelGuid,
           "Pull Request on GitHub",
           pull_request.html_url,
           this.sendSegmentEventOfIntegration
         );
-      console.log("At line 253 inside SRA");
+
       if (tableAssetGuid)
         await createResource(
-          //Complete
           tableAssetGuid,
           "Pull Request on GitHub",
           pull_request.html_url,
           this.sendSegmentEventOfIntegration
         );
-      console.log("At line 262 inside SRA");
+
       totalChangedFiles++;
     }
 
     const comment = await this.createIssueComment({
-      //Complete
       octokit,
       context,
       content: getSetResourceOnAssetComment(),
       comment_id: null,
       forceNewComment: true,
     });
-    console.log("Done");
+
     return totalChangedFiles;
   }
 
   async authIntegration({ octokit, context }) {
-    //DONE
-    //COMPLETE
-    console.log("Here is Context:", context.repo);
     const response = await auth();
-    console.log("Inside authIntegration befor comment exists");
+
     const existingComment = await this.checkCommentExists({ octokit, context });
 
-    console.log("Existing Comment", existingComment);
-
     if (response?.status === 401) {
-      console.log("Inside authIntegration befor createIssueComment");
       await this.createIssueComment({
         octokit,
         context,
@@ -25929,9 +25698,6 @@ class GitHubIntegration extends IntegrationInterface {
   }
 
   async sendSegmentEventOfIntegration({ action, properties }) {
-    //Done
-    //FullyComplete
-    // IMPORT ATLAN_INSTANCE_URL.
     const domain = new URL(github_integration_ATLAN_INSTANCE_URL).hostname;
 
     const raw = stringify({
@@ -25951,8 +25717,6 @@ class GitHubIntegration extends IntegrationInterface {
   }
 
   async getChangedFiles({ octokit, context }) {
-    //Done
-    //FullyComplete
     const { repository, pull_request } = context.payload,
       owner = repository.owner.login,
       repo = repository.name,
@@ -25994,14 +25758,10 @@ class GitHubIntegration extends IntegrationInterface {
       );
     });
 
-    console.log("Changed Files: ", changedFiles);
-
     return changedFiles;
   }
 
   async getAssetName({ octokit, context, fileName, filePath }) {
-    //Done
-    // FullyComplete
     var regExp =
       /{{\s*config\s*\(\s*(?:[^,]*,)*\s*alias\s*=\s*['"]([^'"]+)['"](?:\s*,[^,]*)*\s*\)\s*}}/im;
     var fileContents = await this.getFileContents({
@@ -26009,10 +25769,9 @@ class GitHubIntegration extends IntegrationInterface {
       context,
       filePath,
     });
-    console.log("Here it is: ", fileContents);
+
     if (fileContents) {
       var matches = regExp.exec(fileContents);
-      console.log(matches);
       if (matches) {
         return matches[1].trim();
       }
@@ -26022,8 +25781,6 @@ class GitHubIntegration extends IntegrationInterface {
   }
 
   async getFileContents({ octokit, context, filePath }) {
-    //Done
-    // FullyComplete
     const { repository, pull_request } = context.payload,
       owner = repository.owner.login,
       repo = repository.name,
@@ -26051,13 +25808,10 @@ class GitHubIntegration extends IntegrationInterface {
   }
 
   async checkCommentExists({ octokit, context }) {
-    //Done
-    //FullyComplete
     if (github_integration_IS_DEV) return null;
 
     const { pull_request } = context.payload;
-    console.log(pull_request);
-    console.log("Here: ", context.repo);
+
     const comments = await octokit.rest.issues.listComments({
       ...context.repo,
       issue_number: pull_request.number,
@@ -26073,18 +25827,14 @@ class GitHubIntegration extends IntegrationInterface {
   }
 
   async createIssueComment({
-    //Done
-    // FullyComplete
     octokit,
     context,
     content,
     comment_id = null,
     forceNewComment = false,
   }) {
-    console.log("Inside CreateIssue:", context);
-    console.log("Inside CreateIssue Comment");
     const { pull_request } = context?.payload || {};
-    console.log("Inside CreateIssue Comment");
+
     content = `<!-- ActionCommentIdentifier: atlan-dbt-action -->
 ${content}`;
 
@@ -26094,9 +25844,6 @@ ${content}`;
       body: content,
     };
 
-    console.log(content, content.length);
-    console.log("Inside CreateIssue Comment Complete");
-
     if (github_integration_IS_DEV) return content;
 
     if (comment_id && !forceNewComment)
@@ -26105,8 +25852,6 @@ ${content}`;
   }
 
   async deleteComment({ octokit, context, comment_id }) {
-    //Done
-    //FullyComplete
     const { pull_request } = context.payload;
 
     return octokit.rest.issues.deleteComment({
@@ -26117,8 +25862,6 @@ ${content}`;
   }
 
   async renderDownstreamAssetsComment({
-    //Done
-    //FullyComplete
     octokit,
     context,
     asset,
@@ -26198,9 +25941,9 @@ ${content}`;
         sourceUrl,
       ]) => {
         // Getting connector and certification images
-        const connectorImage = get_image_url_getConnectorImage(connectorName);
+        const connectorImage = getConnectorImage(connectorName);
         const certificationImage = certificateStatus
-          ? get_image_url_getCertificationImage(certificateStatus)
+          ? getCertificationImage(certificateStatus)
           : "";
 
         return [
@@ -33690,53 +33433,6 @@ Make sure your Atlan Instance URL is set in the following format.
 Set your repository action secrets [here](https://gitlab.com/${GITLAB_USER_LOGIN}/${CI_PROJECT_NAME}/-/settings/ci_cd). For more information on how to setup the Atlan dbt Action, please read the [setup documentation here](https://github.com/atlanhq/dbt-action/blob/main/README.md).`
 }
 
-function getRenderDownstreamComment(asset,ATLAN_INSTANCE_URL,downstreamAssets,rows) {
-    console.log("Rows",rows)
-    if(rows.length == 0) {
-        return `### ${getConnectorImage(
-            asset.attributes.connectorName
-        )} [${asset.displayText}](${ATLAN_INSTANCE_URL}/assets/${
-            asset.guid
-        }?utm_source=dbt_gitlab_action) ${
-            asset.attributes?.certificateStatus
-                ? getCertificationImage(asset.attributes.certificateStatus)
-                : ""
-        }
-  
-  No downstream assets found.
-        
-  ${getImageURL("atlan-logo", 15, 15)} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${asset.guid}?utm_source=dbt_gitlab_action)`;
-    }
-    return `### ${getConnectorImage(
-        asset.attributes.connectorName
-      )} [${asset.displayText}](${ATLAN_INSTANCE_URL}/assets/${
-        asset.guid
-      }?utm_source=dbt_gitlab_action) ${
-        asset.attributes?.certificateStatus
-          ? getCertificationImage(asset.attributes.certificateStatus)
-          : ""
-      }
-  
-  <details><summary>
-      
-  <b>${downstreamAssets.entityCount} downstream assets 👇</b></summary><br/>
-  Name | Type | Description | Owners | Terms | Source URL
-  --- | --- | --- | --- | --- | ---
-  ${rows
-    .map((row) =>
-      row.map((i) => i.replace(/\|/g, "•").replace(/\n/g, "")).join(" | ")
-    )
-    .join("\n")}
-  
-  ${getImageURL(
-    "atlan-logo",
-    15,
-    15
-  )} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${
-        asset.guid
-      }?utm_source=dbt_gitlab_action)</details>`
-}
-
 function gitlab_integration_getSetResourceOnAssetComment() {
     return `🎊 Congrats on the merge!
   
@@ -33745,22 +33441,22 @@ This pull request has been added as a resource to all the assets modified. ✅
 }
 
 function gitlab_integration_getAssetInfo(ATLAN_INSTANCE_URL, asset, materialisedAsset, environmentName, projectName) {
-  return `### ${get_image_url_getConnectorImage(
+  return `### ${getConnectorImage(
       asset.attributes.connectorName
     )} [${asset.displayText}](${ATLAN_INSTANCE_URL}/assets/${
       asset.guid
     }/overview?utm_source=dbt_gitlab_action) ${
       asset.attributes?.certificateStatus
-        ? get_image_url_getCertificationImage(asset.attributes.certificateStatus)
+        ? getCertificationImage(asset.attributes.certificateStatus)
         : ""
     }
-Materialised asset: ${get_image_url_getConnectorImage(
+Materialised asset: ${getConnectorImage(
       materialisedAsset.attributes.connectorName
     )} [${materialisedAsset.attributes.name}](${ATLAN_INSTANCE_URL}/assets/${
       materialisedAsset.guid
     }/overview?utm_source=dbt_gitlab_action) ${
       materialisedAsset.attributes?.certificateStatus
-        ? get_image_url_getCertificationImage(materialisedAsset.attributes.certificateStatus)
+        ? getCertificationImage(materialisedAsset.attributes.certificateStatus)
         : ""
     }${environmentName ? ` | Environment Name: \`${environmentName}\`` : ""}${
       projectName ? ` | Project Name: \`${projectName}\`` : ""
@@ -33790,7 +33486,7 @@ ${
 }
 
 function gitlab_integration_getViewAssetButton(ATLAN_INSTANCE_URL, asset) {
-  return `${get_image_url_getImageURL(
+  return `${getImageURL(
       "atlan-logo",
       15,
       15
@@ -33833,17 +33529,10 @@ class GitLabIntegration extends IntegrationInterface {
 
     if (!(await this.authIntegration({ gitlab })))
       throw { message: "Wrong API Token" };
-    console.log("CI_PROJECT_PATH", CI_PROJECT_PATH);
-    console.log("CI_MERGE_REQUEST_IID", CI_MERGE_REQUEST_IID);
-    var temp5 = await gitlab.MergeRequests.show(
-      CI_PROJECT_PATH,
-      CI_MERGE_REQUEST_IID
-    );
-    console.log(temp5);
+
     const { state, web_url, target_branch, diff_refs } =
       await gitlab.MergeRequests.show(CI_PROJECT_PATH, CI_MERGE_REQUEST_IID);
-    console.log("Diff_refs", diff_refs);
-    console.log("At line 47", state, web_url, target_branch);
+
     let total_assets = 0;
     if (state === "opened") {
       total_assets = await this.printDownstreamAssets({
@@ -33871,24 +33560,21 @@ class GitLabIntegration extends IntegrationInterface {
   }
 
   async printDownstreamAssets({ gitlab, target_branch, diff_refs }) {
-    console.log("At line 74 inside printDownstreamAssets");
-    const changedFiles = await this.getChangedFiles({ gitlab, diff_refs }); //Complete
-    console.log("At line 75", changedFiles);
+    const changedFiles = await this.getChangedFiles({ gitlab, diff_refs });
+
     let comments = ``;
     let totalChangedFiles = 0;
 
     for (const { fileName, filePath, headSHA, status } of changedFiles) {
       const aliasName = await this.getAssetName({
-        //Complete
         gitlab,
         fileName,
         filePath,
         headSHA,
       });
       const assetName = IS_IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
-      console.log("At line 88");
+
       // const environments = getGitLabEnvironments();
-      // console.log("At line 90", environments);
       let environment = null;
       // for (const baseBranchName of Object.keys(environments)) {
       //   const environmentName = environments[baseBranchName];
@@ -33897,9 +33583,8 @@ class GitLabIntegration extends IntegrationInterface {
       //     break;
       //   }
       // }
-      console.log("At line 98", environment);
+
       const asset = await getAsset({
-        //Complete
         name: assetName,
         sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
         environment: environment,
@@ -33919,27 +33604,23 @@ class GitLabIntegration extends IntegrationInterface {
         totalChangedFiles++;
         continue;
       }
-      console.log("At line 112", asset);
-      console.log("Lets see :", asset.attributes.dbtModelSqlAssets);
+
       const materialisedAsset = asset.attributes.dbtModelSqlAssets[0];
       const timeStart = Date.now();
 
-      //Cross-check this part once with Jaagrav.
       const totalModifiedFiles = changedFiles.filter(
         (i) => i.status === "modified"
       ).length;
-      console.log("At line 118", totalModifiedFiles);
-      const { guid } = asset; //Changed code over here
-      console.log("GUID in PDA:", guid);
+
+      const { guid } = asset;
+
       const downstreamAssets = await getDownstreamAssets(
-        //Done
         asset,
-        materialisedAsset.guid, //send materialisedAsset.guid
+        materialisedAsset.guid,
         totalModifiedFiles,
         this.sendSegmentEventOfIntegration,
         "gitlab"
       );
-      console.log("At line 129 Completed getDownstreamAssets");
 
       if (downstreamAssets.error) {
         comments += downstreamAssets.error;
@@ -33950,21 +33631,18 @@ class GitLabIntegration extends IntegrationInterface {
       this.sendSegmentEventOfIntegration({
         action: "dbt_ci_action_downstream_unfurl",
         properties: {
-          //Complete
           asset_guid: asset.guid,
           asset_type: asset.typeName,
-          downstream_count: downstreamAssets.entities.length, //check what whether it should be downstreamAssets.entities.length
+          downstream_count: downstreamAssets.entities.length,
           total_fetch_time: Date.now() - timeStart,
         },
       });
 
-      //Get Classification ??????????
       const classifications = await getClassifications({
         sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
       });
 
       const comment = await this.renderDownstreamAssetsComment({
-        //Complete
         asset,
         downstreamAssets,
         classifications,
@@ -33977,44 +33655,39 @@ class GitLabIntegration extends IntegrationInterface {
     }
 
     comments = getBaseComment(totalChangedFiles, comments);
-    console.log("At line 163 in printDownstreamAssets");
-    const existingComment = await this.checkCommentExists({ gitlab }); //Complete
-    console.log("At line 165 after checkCommentExists", existingComment);
+
+    const existingComment = await this.checkCommentExists({ gitlab });
+
     if (totalChangedFiles > 0)
       await this.createIssueComment({
-        //Complete
         gitlab,
         content: comments,
         comment_id: existingComment?.id,
       });
 
     if (totalChangedFiles === 0 && existingComment)
-      await this.deleteComment({ gitlab, comment_id: existingComment.id }); //Complete
-    console.log("Completed PrintDownstreamAssets");
+      await this.deleteComment({ gitlab, comment_id: existingComment.id });
+
     return totalChangedFiles;
   }
 
   async setResourceOnAsset({ gitlab, web_url, target_branch, diff_refs }) {
-    //Done
-    // Implementation for setting resources on GitHub
-    // Use this.token to access the token
-    console.log("At line 189 in setResourceOnAsset");
-    const changedFiles = await this.getChangedFiles({ gitlab, diff_refs }); //Done
+    const changedFiles = await this.getChangedFiles({ gitlab, diff_refs });
+
     var totalChangedFiles = 0;
-    console.log("At line 192 after getChangedFiles", changedFiles);
     if (changedFiles.length === 0) return;
 
     for (const { fileName, filePath, headSHA } of changedFiles) {
-      const assetName = await this.getAssetName({
+      const aliasName = await this.getAssetName({
         gitlab,
         fileName,
         filePath,
         headSHA,
       });
-      // console.log("At line 202", aliasName);
-      // const assetName = IS_IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
-      // const environments = getGitLabEnvironments();
 
+      const assetName = IS_IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
+
+      // const environments = getGitLabEnvironments();
       let environment = null;
       // for (const [baseBranchName, environmentName] of environments) {
       //   if (baseBranchName === target_branch) {
@@ -34024,67 +33697,51 @@ class GitLabIntegration extends IntegrationInterface {
       // }
 
       const asset = await getAsset({
-        //Done
         name: assetName,
         sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
         environment: environment,
         integration: "gitlab",
       });
-      console.log("At line 220 after getAsset in setResourceDownstream", asset);
-      if (asset.error) continue; //Changeed
 
-      //Newly added Logic to not add PR when downstream assets are not available
+      if (asset.error) continue;
+
       const materialisedAsset = asset.attributes.dbtModelSqlAssets[0];
       const timeStart = Date.now();
+
       const totalModifiedFiles = changedFiles.filter(
         (i) => i.status === "modified"
       ).length;
-      console.log("At line 246 in setResourceOnAsset", totalModifiedFiles);
-      const { guid } = asset; //Changed code over here
-      console.log("GUID in SRA :", guid);
+
+      const { guid } = asset;
+
       const downstreamAssets = await getDownstreamAssets(
-        //Done
         asset,
         materialisedAsset.guid,
         totalModifiedFiles,
         this.sendSegmentEventOfIntegration,
         "gitlab"
       );
-      console.log(
-        "At line 256 Completed getDownstreamAssets in setResourceOnAsset"
-      );
 
       if (downstreamAssets.error) {
-        console.log("Dont Know what to do over here"); //Sort this out
+        console.log(downstreamAssets.error);
         continue;
       }
 
-      console.log(asset.attributes.dbtModelSqlAssets);
       const { guid: modelGuid } = asset;
-      const { guid: tableAssetGuid } = asset.attributes.dbtModelSqlAssets[0]; // Here we get an array for the time being choosing 0th element but resolve this
-      console.log("At line 225");
-      console.log("Just before");
-      console.log("MODELGUID :", modelGuid);
-      console.log("TABLEGUID:", tableAssetGuid);
+      const { guid: tableAssetGuid } = asset.attributes.dbtModelSqlAssets[0];
+
       var { CI_COMMIT_MESSAGE } = process.env;
-      console.log(CI_COMMIT_MESSAGE);
-      // Check here also logic changed
       var lines = CI_COMMIT_MESSAGE.split("\n");
-      console.log("Lines", lines);
-      console.log("Lines Length", lines.length);
       var CI_MERGE_REQUEST_TITLE = lines[2];
-      console.log(CI_MERGE_REQUEST_TITLE);
+
       if (downstreamAssets.entityCount != 0) {
         await createResource(
-          //Done
-          //Complete
           modelGuid,
           CI_MERGE_REQUEST_TITLE,
           web_url,
           this.sendSegmentEventOfIntegration
         );
         await createResource(
-          //Done
           tableAssetGuid,
           CI_MERGE_REQUEST_TITLE,
           web_url,
@@ -34094,26 +33751,22 @@ class GitLabIntegration extends IntegrationInterface {
 
       totalChangedFiles++;
     }
-    console.log("At line 244 before create Issue comment");
+
     const comment = await this.createIssueComment({
-      //Done
-      //Complete
       gitlab,
       content: gitlab_integration_getSetResourceOnAssetComment(),
       comment_id: null,
       forceNewComment: true,
     });
-    console.log("At line 256 after create issue comment ");
+
     return totalChangedFiles;
   }
 
   async authIntegration({ gitlab }) {
-    //Done
     const response = await auth();
     var { CI_PROJECT_NAME, GITLAB_USER_LOGIN } = process.env;
     const existingComment = await this.checkCommentExists({ gitlab });
     if (response?.status === 401) {
-      //Complete
       await this.createIssueComment({
         gitlab,
         content: gitlab_integration_getErrorResponseStatus401(
@@ -34138,28 +33791,22 @@ class GitLabIntegration extends IntegrationInterface {
       });
       return false;
     }
-    console.log("Completed authOfIntegration");
+
     return true;
   }
 
   async createIssueComment({
-    //Done
-    //Complete
     gitlab,
     content,
     comment_id = null,
     forceNewComment = false,
   }) {
-    console.log("At line 295 inside createIssueComment", comment_id);
     const { CI_PROJECT_PATH, CI_MERGE_REQUEST_IID, CI_PROJECT_ID } =
       process.env;
-    console.log(CI_PROJECT_PATH, CI_MERGE_REQUEST_IID);
-    console.log(CI_PROJECT_ID);
+
     content = `<!-- ActionCommentIdentifier: atlan-dbt-action -->
 ${content}`;
 
-    console.log("At line 301 inside createIssueComment", content);
-    console.log("IS_DEV", gitlab_integration_IS_DEV);
     if (gitlab_integration_IS_DEV) return content;
 
     if (comment_id && !forceNewComment) {
@@ -34180,11 +33827,6 @@ ${content}`;
   }
 
   async sendSegmentEventOfIntegration({ action, properties }) {
-    //Done
-    //Complete
-    // Implement your sendSegmentEvent logic here
-    // IMPORT ATLAN_INSTANCE_URL.
-    console.log("At line 324 inside sendSegmentOfIntegration");
     const domain = new URL(gitlab_integration_ATLAN_INSTANCE_URL).hostname;
     const { CI_PROJECT_PATH, CI_JOB_URL } = process.env;
 
@@ -34199,26 +33841,18 @@ ${content}`;
         domain,
       },
     });
-    // IMPORT SEGMENTEVENT
+
     return sendSegmentEvent(action, raw);
   }
 
   async getChangedFiles({ gitlab, diff_refs }) {
-    console.log("At line 344 Inside getChangedFiles");
     const { CI_PROJECT_PATH, CI_MERGE_REQUEST_IID } = process.env;
-    console.log(CI_PROJECT_PATH, CI_MERGE_REQUEST_IID);
+
     var changes = await gitlab.MergeRequests.allDiffs(
-      //Changed the function name
       CI_PROJECT_PATH,
       CI_MERGE_REQUEST_IID
     );
-    // const { changes, diff_refs } = await gitlab.MergeRequests.allDiffs(
-    //   //Changed the function name
-    //   CI_PROJECT_PATH,
-    //   CI_MERGE_REQUEST_IID
-    // );
-    console.log("At line 351 Inside getChangedFiles");
-    console.log("Changes", changes);
+
     var changedFiles = changes
       .map(({ new_path, old_path, new_file }) => {
         try {
@@ -34227,7 +33861,7 @@ ${content}`;
             .split("/")
             .reverse()[0]
             .split(".");
-          //Cross-check this with Jaagrav. ###
+
           if (modelName) {
             if (new_file) {
               return {
@@ -34258,7 +33892,6 @@ ${content}`;
       })
       .filter((i) => i !== undefined);
 
-    console.log("At line 412 changed files before filtering are", changedFiles);
     changedFiles = changedFiles.filter((item, index) => {
       return (
         changedFiles.findIndex((obj) => obj.fileName === item.fileName) ===
@@ -34266,15 +33899,10 @@ ${content}`;
       );
     });
 
-    console.log("At line 399 Completed getChangedFiles ", changedFiles);
-
     return changedFiles;
   }
 
   async getAssetName({ gitlab, fileName, filePath, headSHA }) {
-    //Done
-    //Complete
-    console.log("At line 407 inside getAssetName");
     var regExp =
       /{{\s*config\s*\(\s*(?:[^,]*,)*\s*alias\s*=\s*['"]([^'"]+)['"](?:\s*,[^,]*)*\s*\)\s*}}/im; //Changed
     var fileContents = await this.getFileContents({
@@ -34282,21 +33910,17 @@ ${content}`;
       filePath,
       headSHA,
     });
-    console.log("At line 414 inside getAssetName");
+
     var matches = regExp.exec(fileContents);
-    console.log(matches);
-    console.log("At line 416");
+
     if (matches) {
       return matches[1];
     }
-    console.log("At line 420 completed getAssetName");
+
     return fileName;
   }
 
   async getFileContents({ gitlab, filePath, headSHA }) {
-    //Done
-    //Complete
-    console.log("At line 427 inside getFileContents");
     const { CI_PROJECT_PATH } = process.env;
     const { content } = await gitlab.RepositoryFiles.show(
       CI_PROJECT_PATH,
@@ -34304,27 +33928,24 @@ ${content}`;
       headSHA
     );
     const buff = Buffer.from(content, "base64");
-    console.log("At line 435 inside getFileContents");
+
     return buff.toString("utf8");
   }
 
   async checkCommentExists({ gitlab }) {
-    //Done
-    //Complete
-    console.log("At line 442 inside checkCommentExists");
     const { CI_PROJECT_PATH, CI_MERGE_REQUEST_IID, CI_PROJECT_ID } =
       process.env;
+
     if (gitlab_integration_IS_DEV) return null;
 
     const comments = await gitlab.MergeRequestNotes.all(
       CI_PROJECT_PATH,
       CI_MERGE_REQUEST_IID
     );
-    console.log("Existing comments inside checkCommentExists :", comments);
+
     const identifier = `project_${CI_PROJECT_ID}_bot_`;
-    console.log(identifier);
+
     return comments.find(
-      // Why here we have hardocded value? What should be over here inplace of this.
       (comment) =>
         comment.author.username.includes(identifier) &&
         comment.body.includes(
@@ -34334,9 +33955,6 @@ ${content}`;
   }
 
   async deleteComment({ gitlab, comment_id }) {
-    //Done
-    //Complete
-    console.log("At line 464 inside deleteComment");
     const { CI_PROJECT_PATH, CI_MERGE_REQUEST_IID } = process.env;
 
     return await gitlab.MergeRequestNotes.remove(
@@ -34352,111 +33970,6 @@ ${content}`;
     classifications,
     materialisedAsset,
   }) {
-    //Done
-    // console.log("At line 474 inside renderDownstreamAssetsComment");
-    // console.log("Assets :", asset);
-    // console.log("Downstream Assets: ", downstreamAssets);
-    // let impactedData = downstreamAssets.entities.map(
-    //   //here changed from downstreamAssets.map to downstreamAssets.entities.map
-    //   ({ displayText, guid, typeName, attributes, meanings }) => {
-    //     let readableTypeName = typeName
-    //       .toLowerCase()
-    //       .replace(attributes.connectorName, "")
-    //       .toUpperCase();
-    //     readableTypeName =
-    //       readableTypeName.charAt(0).toUpperCase() +
-    //       readableTypeName.slice(1).toLowerCase();
-    //     return [
-    //       guid,
-    //       displayText,
-    //       attributes.connectorName,
-    //       readableTypeName,
-    //       attributes?.userDescription || attributes?.description || "",
-    //       attributes?.certificateStatus || "",
-    //       [...attributes?.ownerUsers, ...attributes?.ownerGroups] || [],
-    //       meanings
-    //         .map(
-    //           ({ displayText, termGuid }) =>
-    //             `[${displayText}](${ATLAN_INSTANCE_URL}/assets/${termGuid}?utm_source=dbt_gitlab_action)`
-    //         )
-    //         ?.join(", ") || " ",
-    //       attributes?.sourceURL || "",
-    //     ];
-    //   }
-    // );
-
-    // console.log("Impacted Data", impactedData);
-    // console.log("At line 502 in renderDownstreamAsset");
-    // impactedData = impactedData.sort((a, b) => a[3].localeCompare(b[3])); // Sort by typeName
-    // impactedData = impactedData.sort((a, b) => a[2].localeCompare(b[2])); // Sort by connectorName
-
-    // let rows = impactedData.map(
-    //   ([
-    //     guid,
-    //     displayText,
-    //     connectorName,
-    //     typeName,
-    //     description,
-    //     certificateStatus,
-    //     owners,
-    //     meanings,
-    //     sourceUrl,
-    //   ]) => {
-    //     const connectorImage = getConnectorImage(connectorName),
-    //       certificationImage = certificateStatus
-    //         ? getCertificationImage(certificateStatus)
-    //         : "";
-
-    //     return [
-    //       `${connectorImage} [${displayText}](${ATLAN_INSTANCE_URL}/assets/${guid}?utm_source=dbt_gitlab_action) ${certificationImage}`,
-    //       `\`${typeName}\``,
-    //       description,
-    //       owners.join(", ") || " ",
-    //       meanings,
-    //       sourceUrl ? `[Open in ${connectorName}](${sourceUrl})` : " ",
-    //     ];
-    //   }
-    // );
-    // console.log("Rows: ", rows);
-    // //changed downstreamAssets.length to downstreamAssets.entities.length
-    // const comment1 = getRenderDownstreamComment(
-    //   asset,
-    //   ATLAN_INSTANCE_URL,
-    //   downstreamAssets,
-    //   rows
-    // );
-    // console.log("Comment 1 : ", comment1);
-    // //     const comment = `### ${getConnectorImage(
-    // //       asset.attributes.connectorName
-    // //     )} [${asset.displayText}](${ATLAN_INSTANCE_URL}/assets/${
-    // //       asset.guid
-    // //     }?utm_source=dbt_github_action) ${
-    // //       asset.attributes?.certificateStatus
-    // //         ? getCertificationImage(asset.attributes.certificateStatus)
-    // //         : ""
-    // //     }
-
-    // // <details><summary>
-
-    // // <b>${downstreamAssets.entityCount} downstream assets 👇</b></summary><br/>
-    // // Name | Type | Description | Owners | Terms | Source URL
-    // // --- | --- | --- | --- | --- | ---
-    // // ${rows
-    // //   .map((row) =>
-    // //     row.map((i) => i.replace(/\|/g, "•").replace(/\n/g, "")).join(" | ")
-    // //   )
-    // //   .join("\n")}
-
-    // // ${getImageURL(
-    // //   "atlan-logo",
-    // //   15,
-    // //   15
-    // // )} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${
-    // //       asset.guid
-    // //     }?utm_source=dbt_github_action)</details>`;
-    // //     console.log("Comment2 : ", comment)
-    // return comment1;
-
     let impactedData = downstreamAssets.entities.map(
       ({
         displayText,
@@ -34497,7 +34010,7 @@ ${content}`;
           truncate(
             meanings.map(
               ({ displayText, termGuid }) =>
-                `[${displayText}](${gitlab_integration_ATLAN_INSTANCE_URL}/assets/${termGuid}/overview?utm_source=dbt_github_action)`
+                `[${displayText}](${gitlab_integration_ATLAN_INSTANCE_URL}/assets/${termGuid}/overview?utm_source=dbt_gitlab_action)`
             )
           ),
           truncate(
@@ -34529,9 +34042,9 @@ ${content}`;
         sourceUrl,
       ]) => {
         // Getting connector and certification images
-        const connectorImage = get_image_url_getConnectorImage(connectorName);
+        const connectorImage = getConnectorImage(connectorName);
         const certificationImage = certificateStatus
-          ? get_image_url_getCertificationImage(certificateStatus)
+          ? getCertificationImage(certificateStatus)
           : "";
 
         return [
@@ -34601,12 +34114,11 @@ const GITLAB_TOKEN = process.env.GITLAB_TOKEN;
 
 async function run() {
   //Add new integrations over here
-  console.log("oii");
   await runAction(GITHUB_TOKEN, GitHubIntegration);
   await runAction(GITLAB_TOKEN, GitLabIntegration);
 }
 
-run();
+run(); //add segment event over here
 
 })();
 
