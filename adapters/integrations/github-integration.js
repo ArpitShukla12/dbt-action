@@ -43,27 +43,19 @@ export default class GitHubIntegration extends IntegrationInterface {
   async run() {
     const timeStart = Date.now();
     const { context } = github;
-    console.log("Hmm");
-    console.log("Interesting over here");
-    console.log("Lets seeee");
-    console.log("Lets see again");
-    console.log("Context:", context);
     const octokit = github.getOctokit(this.token);
     const { pull_request } = context?.payload;
-    console.log(pull_request, "hii");
     const { state, merged } = pull_request;
-    console.log("state", state);
-    console.log("merged", merged);
+
     if (!(await this.authIntegration({ octokit, context }))) {
       throw { message: "Wrong API Token" };
     }
 
     let total_assets = 0;
-    console.log("After auth Integration");
+
     if (state === "open") {
       total_assets = await this.printDownstreamAssets({ octokit, context });
     } else if (state === "closed" && merged) {
-      console.log("Hmm");
       total_assets = await this.setResourceOnAsset({ octokit, context });
     }
 
@@ -79,23 +71,20 @@ export default class GitHubIntegration extends IntegrationInterface {
   }
 
   async printDownstreamAssets({ octokit, context }) {
-    console.log("Brother");
-    const changedFiles = await this.getChangedFiles({ octokit, context }); //Complete
+    const changedFiles = await this.getChangedFiles({ octokit, context });
     let comments = ``;
     let totalChangedFiles = 0;
 
     for (const { fileName, filePath, status } of changedFiles) {
       const aliasName = await this.getAssetName({
-        //Complete
         octokit,
         context,
         fileName,
         filePath,
       });
-      const assetName = isIgnoreModelAliasMatching() ? fileName : aliasName; //Complete
-      console.log("acha2", aliasName);
-      // const environments = getEnvironments();
+      const assetName = isIgnoreModelAliasMatching() ? fileName : aliasName;
 
+      // const environments = getEnvironments();
       let environment = null;
       // for (const [baseBranchName, environmentName] of environments) {
       //   if (baseBranchName === context.payload.pull_request.base.ref) {
@@ -103,50 +92,48 @@ export default class GitHubIntegration extends IntegrationInterface {
       //     break;
       //   }
       // }
-      console.log("Before getAsset");
       const asset = await getAsset({
-        //Done
         name: assetName,
         sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
         environment: environment,
         integration: "github",
       });
-      console.log("After getAsset");
+
       if (totalChangedFiles !== 0) comments += "\n\n---\n\n";
-      console.log("Status: ", status);
+
       if (status === "added") {
         comments += getNewModelAddedComment(fileName);
         totalChangedFiles++;
         continue;
       }
-      console.log("Before filtering");
-      console.log("Asset", asset);
+
       if (asset.error) {
         comments += asset.error;
         totalChangedFiles++;
         continue;
       }
+
       const materialisedAsset = asset.attributes.dbtModelSqlAssets[0];
       const timeStart = Date.now();
+
       const totalModifiedFiles = changedFiles.filter(
         (i) => i.status === "modified"
       ).length;
-      console.log("Before getDownstreamAssets");
+
       const downstreamAssets = await getDownstreamAssets(
-        //Complete
         asset,
         materialisedAsset.guid,
         totalModifiedFiles,
         this.sendSegmentEventOfIntegration,
         "github"
       );
-      console.log("After getDownstreamAssets");
+
       if (downstreamAssets.error) {
         comments += downstreamAssets.error;
         totalChangedFiles++;
         continue;
       }
-      console.log("At line 139 after getDownstreamAssets in printDownstream");
+
       this.sendSegmentEventOfIntegration({
         action: "dbt_ci_action_downstream_unfurl",
         properties: {
@@ -156,15 +143,12 @@ export default class GitHubIntegration extends IntegrationInterface {
           total_fetch_time: Date.now() - timeStart,
         },
       });
-      console.log("At line 147 after getDownstreamAssets in printDownstream");
 
       const classifications = await getClassifications({
         sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
       });
 
       const comment = await this.renderDownstreamAssetsComment({
-        //Done
-        //Complete
         octokit,
         context,
         asset,
@@ -180,11 +164,10 @@ export default class GitHubIntegration extends IntegrationInterface {
 
     comments = getBaseComment(totalChangedFiles, comments);
 
-    const existingComment = await this.checkCommentExists({ octokit, context }); //Complete
+    const existingComment = await this.checkCommentExists({ octokit, context });
 
     if (totalChangedFiles > 0)
       await this.createIssueComment({
-        //Complete
         octokit,
         context,
         content: comments,
@@ -193,7 +176,6 @@ export default class GitHubIntegration extends IntegrationInterface {
 
     if (totalChangedFiles === 0 && existingComment)
       await this.deleteComment({
-        //Complete
         octokit,
         context,
         comment_id: existingComment.id,
@@ -203,24 +185,23 @@ export default class GitHubIntegration extends IntegrationInterface {
   }
 
   async setResourceOnAsset({ octokit, context }) {
-    console.log("At line 205 inside SRA");
-    const changedFiles = await this.getChangedFiles({ octokit, context }); //Complete
+    const changedFiles = await this.getChangedFiles({ octokit, context });
     const { pull_request } = context.payload;
     var totalChangedFiles = 0;
-    console.log("At line 209 inside SRA", changedFiles);
+
     if (changedFiles.length === 0) return;
 
     for (const { fileName, filePath } of changedFiles) {
-      const assetName = await this.getAssetName({
-        //Complete
+      const aliasName = await this.getAssetName({
         octokit,
         context,
         fileName,
         filePath,
       });
-      console.log("OII", assetName);
-      // const environments = getEnvironments();
 
+      const assetName = isIgnoreModelAliasMatching() ? fileName : aliasName;
+
+      // const environments = getEnvironments();
       let environment = null;
       // for (const [baseBranchName, environmentName] of environments) {
       //   if (baseBranchName === context.payload.pull_request.base.ref) {
@@ -230,7 +211,6 @@ export default class GitHubIntegration extends IntegrationInterface {
       // }
 
       const asset = await getAsset({
-        //Done
         name: assetName,
         sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
         environment: environment,
@@ -238,59 +218,49 @@ export default class GitHubIntegration extends IntegrationInterface {
       });
 
       if (asset.error) {
-        console.log("Wuuuuuttt");
         continue;
       }
-      console.log("At line 240 inside SRA", asset);
+
       const { guid: modelGuid } = asset;
       const { guid: tableAssetGuid } =
         asset?.attributes?.dbtModelSqlAssets?.[0];
-      console.log("At line 244 inside SRA", modelGuid, tableAssetGuid);
+
       if (modelGuid)
         await createResource(
-          //Complete
           modelGuid,
           "Pull Request on GitHub",
           pull_request.html_url,
           this.sendSegmentEventOfIntegration
         );
-      console.log("At line 253 inside SRA");
+
       if (tableAssetGuid)
         await createResource(
-          //Complete
           tableAssetGuid,
           "Pull Request on GitHub",
           pull_request.html_url,
           this.sendSegmentEventOfIntegration
         );
-      console.log("At line 262 inside SRA");
+
       totalChangedFiles++;
     }
 
     const comment = await this.createIssueComment({
-      //Complete
       octokit,
       context,
       content: getSetResourceOnAssetComment(),
       comment_id: null,
       forceNewComment: true,
     });
-    console.log("Done");
+
     return totalChangedFiles;
   }
 
   async authIntegration({ octokit, context }) {
-    //DONE
-    //COMPLETE
-    console.log("Here is Context:", context.repo);
     const response = await auth();
-    console.log("Inside authIntegration befor comment exists");
+
     const existingComment = await this.checkCommentExists({ octokit, context });
 
-    console.log("Existing Comment", existingComment);
-
     if (response?.status === 401) {
-      console.log("Inside authIntegration befor createIssueComment");
       await this.createIssueComment({
         octokit,
         context,
@@ -314,9 +284,6 @@ export default class GitHubIntegration extends IntegrationInterface {
   }
 
   async sendSegmentEventOfIntegration({ action, properties }) {
-    //Done
-    //FullyComplete
-    // IMPORT ATLAN_INSTANCE_URL.
     const domain = new URL(ATLAN_INSTANCE_URL).hostname;
 
     const raw = stringify({
@@ -336,8 +303,6 @@ export default class GitHubIntegration extends IntegrationInterface {
   }
 
   async getChangedFiles({ octokit, context }) {
-    //Done
-    //FullyComplete
     const { repository, pull_request } = context.payload,
       owner = repository.owner.login,
       repo = repository.name,
@@ -379,14 +344,10 @@ export default class GitHubIntegration extends IntegrationInterface {
       );
     });
 
-    console.log("Changed Files: ", changedFiles);
-
     return changedFiles;
   }
 
   async getAssetName({ octokit, context, fileName, filePath }) {
-    //Done
-    // FullyComplete
     var regExp =
       /{{\s*config\s*\(\s*(?:[^,]*,)*\s*alias\s*=\s*['"]([^'"]+)['"](?:\s*,[^,]*)*\s*\)\s*}}/im;
     var fileContents = await this.getFileContents({
@@ -394,10 +355,9 @@ export default class GitHubIntegration extends IntegrationInterface {
       context,
       filePath,
     });
-    console.log("Here it is: ", fileContents);
+
     if (fileContents) {
       var matches = regExp.exec(fileContents);
-      console.log(matches);
       if (matches) {
         return matches[1].trim();
       }
@@ -407,8 +367,6 @@ export default class GitHubIntegration extends IntegrationInterface {
   }
 
   async getFileContents({ octokit, context, filePath }) {
-    //Done
-    // FullyComplete
     const { repository, pull_request } = context.payload,
       owner = repository.owner.login,
       repo = repository.name,
@@ -436,13 +394,10 @@ export default class GitHubIntegration extends IntegrationInterface {
   }
 
   async checkCommentExists({ octokit, context }) {
-    //Done
-    //FullyComplete
     if (IS_DEV) return null;
 
     const { pull_request } = context.payload;
-    console.log(pull_request);
-    console.log("Here: ", context.repo);
+
     const comments = await octokit.rest.issues.listComments({
       ...context.repo,
       issue_number: pull_request.number,
@@ -458,18 +413,14 @@ export default class GitHubIntegration extends IntegrationInterface {
   }
 
   async createIssueComment({
-    //Done
-    // FullyComplete
     octokit,
     context,
     content,
     comment_id = null,
     forceNewComment = false,
   }) {
-    console.log("Inside CreateIssue:", context);
-    console.log("Inside CreateIssue Comment");
     const { pull_request } = context?.payload || {};
-    console.log("Inside CreateIssue Comment");
+
     content = `<!-- ActionCommentIdentifier: atlan-dbt-action -->
 ${content}`;
 
@@ -479,9 +430,6 @@ ${content}`;
       body: content,
     };
 
-    console.log(content, content.length);
-    console.log("Inside CreateIssue Comment Complete");
-
     if (IS_DEV) return content;
 
     if (comment_id && !forceNewComment)
@@ -490,8 +438,6 @@ ${content}`;
   }
 
   async deleteComment({ octokit, context, comment_id }) {
-    //Done
-    //FullyComplete
     const { pull_request } = context.payload;
 
     return octokit.rest.issues.deleteComment({
@@ -502,8 +448,6 @@ ${content}`;
   }
 
   async renderDownstreamAssetsComment({
-    //Done
-    //FullyComplete
     octokit,
     context,
     asset,

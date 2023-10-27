@@ -6,7 +6,7 @@ import { getAPIToken, getInstanceUrl } from "../utils/index.js";
 const ATLAN_INSTANCE_URL = getInstanceUrl();
 const ATLAN_API_TOKEN = getAPIToken();
 
-export default async function createResource( //Done
+export default async function createResource(
   guid,
   name,
   link,
@@ -58,10 +58,6 @@ export default async function createResource( //Done
         },
       });
     });
-
-  console.log("Created Resource:", response);
-  console.log("UPDATE : ", response.mutatedEntities.UPDATE);
-  console.log("CREATE : ", response.mutatedEntities.CREATE);
 
   return response;
 }

@@ -12,9 +12,8 @@ const GITLAB_TOKEN = process.env.GITLAB_TOKEN;
 
 async function run() {
   //Add new integrations over here
-  console.log("oii");
   await runAction(GITHUB_TOKEN, GitHubIntegration);
   await runAction(GITLAB_TOKEN, GitLabIntegration);
 }
 
-run();
+run(); //add segment event over here

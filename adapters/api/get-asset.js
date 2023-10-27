@@ -15,7 +15,6 @@ const ATLAN_API_TOKEN =
   core.getInput("ATLAN_API_TOKEN") || process.env.ATLAN_API_TOKEN;
 
 export default async function getAsset({
-  //Done
   name,
   sendSegmentEventOfIntegration,
   environment,
@@ -25,7 +24,7 @@ export default async function getAsset({
     Authorization: `Bearer ${ATLAN_API_TOKEN}`,
     "Content-Type": "application/json",
   };
-  console.log("At line 24 inside getAsset function");
+
   var raw = stringify({
     dsl: {
       from: 0,
@@ -92,8 +91,6 @@ export default async function getAsset({
     headers: myHeaders,
     body: raw,
   };
-  console.log("Before SendSegmentEventOfIntegration");
-  console.log("At line 92 inside getAsset");
 
   var response = await fetch(
     `${ATLAN_INSTANCE_URL}/api/meta/search/indexsearch#findAssetByExactName`,
@@ -110,21 +107,13 @@ export default async function getAsset({
         },
       });
     });
-  console.log(response);
-  console.log("<><><><><><><><><><><><><>");
-  console.log("Checking");
-  if (!response) {
-    return {
-      error: getErrorModelNotFound(name),
-    };
-  }
+
   if (!response?.entities?.length) {
     return {
       error: getErrorModelNotFound(name),
     };
   }
 
-  console.log(response);
   if (Array.isArray(response.entities)) {
     response.entities.sort((entityA, entityB) => {
       const hasDbtModelSqlAssetsA =
@@ -150,13 +139,6 @@ export default async function getAsset({
       return 0; // No difference in sorting for these two entities
     });
   }
-  console.log("After sorting ", response);
-  if (response?.entities?.length) {
-    console.log(response?.entities[0].guid);
-    console.log("Over here", response?.entities[0]?.attributes);
-  }
-  console.log("Got Printed?");
-  //Test both the below comments as we have replaced with functions
 
   if (!response?.entities[0]?.attributes?.dbtModelSqlAssets?.length > 0)
     return {

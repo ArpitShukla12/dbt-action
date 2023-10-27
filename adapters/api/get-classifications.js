@@ -1,6 +1,4 @@
 import fetch from "node-fetch";
-import { sendSegmentEvent } from "./index.js";
-import stringify from "json-stringify-safe";
 import { getAPIToken, getInstanceUrl } from "../utils/index.js";
 
 const ATLAN_INSTANCE_URL = getInstanceUrl();
