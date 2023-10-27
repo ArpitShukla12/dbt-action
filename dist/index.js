@@ -25317,6 +25317,18 @@ async function getAsset({
       });
     });
   console.log("<><><><><><><><><><><><><>");
+  console.log("Checking");
+  if (!response) {
+    return {
+      error: getErrorModelNotFound(name),
+    };
+  }
+  if (!response?.entities?.length) {
+    return {
+      error: getErrorModelNotFound(name),
+    };
+  }
+
   console.log(response);
   if (Array.isArray(response.entities)) {
     response.entities.sort((entityA, entityB) => {
@@ -25350,10 +25362,6 @@ async function getAsset({
   }
   console.log("Got Printed?");
   //Test both the below comments as we have replaced with functions
-  if (!response?.entities?.length)
-    return {
-      error: getErrorModelNotFound(name),
-    };
 
   if (!response?.entities[0]?.attributes?.dbtModelSqlAssets?.length > 0)
     return {
@@ -25649,8 +25657,10 @@ class GitHubIntegration extends IntegrationInterface {
   async run() {
     const timeStart = Date.now();
     const { context } = github;
+    console.log("Hmm");
     console.log("Interesting over here");
     console.log("Lets seeee");
+    console.log("Lets see again");
     console.log("Context:", context);
     const octokit = github.getOctokit(this.token);
     const { pull_request } = context?.payload;
