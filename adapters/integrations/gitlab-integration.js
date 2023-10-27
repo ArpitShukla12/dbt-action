@@ -217,7 +217,8 @@ export default class GitLabIntegration extends IntegrationInterface {
 
       const environments = getGitLabEnvironments();
       let environment = null;
-      for (const [baseBranchName, environmentName] of environments) {
+      for (const baseBranchName of Object.keys(environments)) {
+        const environmentName = environments[baseBranchName];
         if (baseBranchName === target_branch) {
           environment = environmentName;
           break;
