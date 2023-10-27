@@ -102,15 +102,15 @@ export default class GitLabIntegration extends IntegrationInterface {
       });
       const assetName = IS_IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
 
-      // const environments = getGitLabEnvironments();
+      const environments = getGitLabEnvironments();
       let environment = null;
-      // for (const baseBranchName of Object.keys(environments)) {
-      //   const environmentName = environments[baseBranchName];
-      //   if (baseBranchName === target_branch) {
-      //     environment = environmentName;
-      //     break;
-      //   }
-      // }
+      for (const baseBranchName of Object.keys(environments)) {
+        const environmentName = environments[baseBranchName];
+        if (baseBranchName === target_branch) {
+          environment = environmentName;
+          break;
+        }
+      }
 
       const asset = await getAsset({
         name: assetName,
@@ -215,14 +215,14 @@ export default class GitLabIntegration extends IntegrationInterface {
 
       const assetName = IS_IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
 
-      // const environments = getGitLabEnvironments();
+      const environments = getGitLabEnvironments();
       let environment = null;
-      // for (const [baseBranchName, environmentName] of environments) {
-      //   if (baseBranchName === target_branch) {
-      //     environment = environmentName;
-      //     break;
-      //   }
-      // }
+      for (const [baseBranchName, environmentName] of environments) {
+        if (baseBranchName === target_branch) {
+          environment = environmentName;
+          break;
+        }
+      }
 
       const asset = await getAsset({
         name: assetName,
