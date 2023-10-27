@@ -26,6 +26,7 @@ import {
   getErrorResponseStatusUndefined,
   getRenderDownstreamComment,
 } from "../templates/gitlab-integration.js";
+import { getNewModelAddedComment } from "../templates/atlan.js";
 dotenv.config();
 const ATLAN_INSTANCE_URL = process.env.ATLAN_INSTANCE_URL;
 const { IS_DEV, IS_IGNORE_MODEL_ALIAS_MATCHING } = process.env;
@@ -129,8 +130,7 @@ export default class GitLabIntegration extends IntegrationInterface {
       if (totalChangedFiles !== 0) comments += "\n\n---\n\n";
 
       if (status === "added") {
-        comments += `### ${getConnectorImage("dbt")} <b>${fileName}</b> 🆕
-Its a new model and not present in Atlan yet, you'll see the downstream impact for it after its present in Atlan.`;
+        comments += getNewModelAddedComment(fileName);
         totalChangedFiles++;
         continue;
       }
@@ -141,7 +141,7 @@ Its a new model and not present in Atlan yet, you'll see the downstream impact f
         continue;
       }
       console.log("At line 112", asset);
-      console.log("Lets see :", asset.attributes.dbtModelSqlAssets)
+      console.log("Lets see :", asset.attributes.dbtModelSqlAssets);
       //Cross-check this part once with Jaagrav.
 
       const totalModifiedFiles = changedFiles.filter(
@@ -223,14 +223,14 @@ ${comments}`;
     if (changedFiles.length === 0) return;
 
     for (const { fileName, filePath, headSHA } of changedFiles) {
-      const aliasName = await this.getAssetName({
+      const assetName = await this.getAssetName({
         gitlab,
         fileName,
         filePath,
         headSHA,
       });
-      console.log("At line 202", aliasName);
-      const assetName = IS_IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
+      // console.log("At line 202", aliasName);
+      // const assetName = IS_IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
       // const environments = getGitLabEnvironments();
 
       let environment = null;

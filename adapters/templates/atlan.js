@@ -1,3 +1,4 @@
+import {getConnectorImage} from "../utils/index.js"
 
 export function getErrorModelNotFound(name) {
   return `
@@ -14,4 +15,9 @@ export function getErrorDoesNotMaterialize(
 
   return `
 <br>❌ Model with name [${name}](${ATLAN_INSTANCE_URL}/assets/${response.entities[0].guid}/overview?utm_source=dbt_${integration}_action) does not materialise any asset <br><br>`;
+}
+
+export function getNewModelAddedComment() {
+  return `### ${getConnectorImage("dbt")} <b>${fileName}</b> 🆕
+  Its a new model and not present in Atlan yet, you'll see the downstream impact for it after its present in Atlan.`
 }

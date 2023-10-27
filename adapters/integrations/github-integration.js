@@ -2,25 +2,34 @@
 import dotenv from "dotenv"; // Check do we actually need it or not
 import IntegrationInterface from "./contract/contract.js";
 import github from "@actions/github";
-import { isIgnoreModelAliasMatching } from "../../src/utils/get-environment-variables.js";
+import stringify from "json-stringify-safe";
 import {
   getCertificationImage,
   getConnectorImage,
-} from "../../src/utils/get-image-url.js";
-import { getEnvironments } from "../../src/utils/get-environment-variables.js";
-import stringify from "json-stringify-safe";
+  isIgnoreModelAliasMatching,
+  getEnvironments,
+  getImageURL,
+  auth,
+  isDev,
+  truncate,
+  getInstanceUrl,
+} from "../utils/index.js";
 import {
   getAsset,
   getDownstreamAssets,
   sendSegmentEvent,
   createResource,
   getClassifications,
-} from "../../src/api/index.js";
-import { getImageURL, auth } from "../../src/utils/index.js";
-import { isDev } from "../../src/utils/get-environment-variables.js";
-import { truncate } from "../../src/utils/create-comment.js";
-import { getInstanceUrl } from "../../src/utils/get-environment-variables.js";
-
+} from "../api/index.js";
+import {
+  getSetResourceOnAssetComment,
+  getErrorResponseStatus401,
+  getErrorResponseStatusUndefined,
+  getAssetInfo,
+  getDownstreamTable,
+  getViewAssetButton,
+} from "../templates/github-integration.js";
+import { getNewModelAddedComment, getBaseComment } from "../templates/atlan.js";
 const IS_DEV = isDev();
 const ATLAN_INSTANCE_URL = getInstanceUrl();
 
@@ -112,8 +121,7 @@ export default class GitHubIntegration extends IntegrationInterface {
       if (totalChangedFiles !== 0) comments += "\n\n---\n\n";
       console.log("Status: ", status);
       if (status === "added") {
-        comments += `### ${getConnectorImage("dbt")} <b>${fileName}</b> 🆕
-Its a new model and not present in Atlan yet, you'll see the downstream impact for it after its present in Atlan.`;
+        comments += getNewModelAddedComment(fileName);
         totalChangedFiles++;
         continue;
       }
@@ -178,12 +186,7 @@ Its a new model and not present in Atlan yet, you'll see the downstream impact f
       totalChangedFiles++;
     }
 
-    comments = `### ${getImageURL("atlan-logo", 15, 15)} Atlan impact analysis
-Here is your downstream impact analysis for **${totalChangedFiles} ${
-      totalChangedFiles > 1 ? "models" : "model"
-    }** you have edited.
-
-${comments}`;
+    comments = getBaseComment(totalChangedFiles, comments);
 
     const existingComment = await this.checkCommentExists({ octokit, context }); //Complete
 
@@ -278,10 +281,7 @@ ${comments}`;
       //Complete
       octokit,
       context,
-      content: `🎊 Congrats on the merge!
-
-This pull request has been added as a resource to all the assets modified. ✅
-`,
+      content: getSetResourceOnAssetComment(),
       comment_id: null,
       forceNewComment: true,
     });
@@ -304,11 +304,7 @@ This pull request has been added as a resource to all the assets modified. ✅
       await this.createIssueComment({
         octokit,
         context,
-        content: `We couldn't connect to your Atlan Instance, please make sure to set the valid Atlan Bearer Token as \`ATLAN_API_TOKEN\` as this repository's action secret.
-
-Atlan Instance URL: ${ATLAN_INSTANCE_URL}
-
-Set your repository action secrets [here](https://github.com/${context.payload.repository.full_name}/settings/secrets/actions). For more information on how to setup the Atlan dbt Action, please read the [setup documentation here](https://github.com/atlanhq/dbt-action/blob/main/README.md).`,
+        content: getErrorResponseStatus401(ATLAN_INSTANCE_URL, context),
         comment_id: existingComment?.id,
       });
       return false;
@@ -318,14 +314,7 @@ Set your repository action secrets [here](https://github.com/${context.payload.r
       await this.createIssueComment({
         octokit,
         context,
-        content: `We couldn't connect to your Atlan Instance, please make sure to set the valid Atlan Instance URL as \`ATLAN_INSTANCE_URL\` as this repository's action secret.
-
-Atlan Instance URL: ${ATLAN_INSTANCE_URL}
-
-Make sure your Atlan Instance URL is set in the following format.
-\`https://tenant.atlan.com\`
-
-Set your repository action secrets [here](https://github.com/${context.payload.repository.full_name}/settings/secrets/actions). For more information on how to setup the Atlan dbt Action, please read the [setup documentation here](https://github.com/atlanhq/dbt-action/blob/main/README.md).`,
+        content: getErrorResponseStatusUndefined(ATLAN_INSTANCE_URL, context),
         comment_id: existingComment?.id,
       });
       return false;
@@ -625,56 +614,24 @@ ${content}`;
       materialisedAsset?.attributes?.assetDbtEnvironmentName;
     const projectName = materialisedAsset?.attributes?.assetDbtProjectName;
     // Generating asset information
-    const assetInfo = `### ${getConnectorImage(
-      asset.attributes.connectorName
-    )} [${asset.displayText}](${ATLAN_INSTANCE_URL}/assets/${
-      asset.guid
-    }/overview?utm_source=dbt_github_action) ${
-      asset.attributes?.certificateStatus
-        ? getCertificationImage(asset.attributes.certificateStatus)
-        : ""
-    }
-Materialised asset: ${getConnectorImage(
-      materialisedAsset.attributes.connectorName
-    )} [${materialisedAsset.attributes.name}](${ATLAN_INSTANCE_URL}/assets/${
-      materialisedAsset.guid
-    }/overview?utm_source=dbt_github_action) ${
-      materialisedAsset.attributes?.certificateStatus
-        ? getCertificationImage(materialisedAsset.attributes.certificateStatus)
-        : ""
-    }${environmentName ? ` | Environment Name: \`${environmentName}\`` : ""}${
-      projectName ? ` | Project Name: \`${projectName}\`` : ""
-    }`;
+    const assetInfo = getAssetInfo(
+      ATLAN_INSTANCE_URL,
+      asset,
+      materialisedAsset,
+      environmentName,
+      projectName
+    );
 
     // Generating the downstream table
-    const downstreamTable = `<details><summary><b>${
-      downstreamAssets.entityCount
-    } downstream assets 👇</b></summary><br/>
-
-Name | Type | Description | Owners | Terms | Classifications | Source URL
---- | --- | --- | --- | --- | --- | ---
-${rows
-  .map((row) =>
-    row.map((i) => i.replace(/\|/g, "•").replace(/\n/g, "")).join(" | ")
-  )
-  .join("\n")}
-
-${
-  downstreamAssets.hasMore
-    ? `[See more downstream assets at Atlan](${ATLAN_INSTANCE_URL}/assets/${materialisedAsset.guid}/lineage?utm_source=dbt_github_action)`
-    : ""
-}
-
-</details>`;
+    const downstreamTable = getDownstreamTable(
+      ATLAN_INSTANCE_URL,
+      downstreamAssets,
+      rows,
+      materialisedAsset
+    );
 
     // Generating the "View asset in Atlan" button
-    const viewAssetButton = `${getImageURL(
-      "atlan-logo",
-      15,
-      15
-    )} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${
-      asset.guid
-    }/overview?utm_source=dbt_github_action)`;
+    const viewAssetButton = getViewAssetButton(ATLAN_INSTANCE_URL, asset);
 
     // Generating the final comment based on the presence of downstream assets
     if (downstreamAssets.entities.length > 0) {
