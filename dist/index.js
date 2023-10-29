@@ -24827,7 +24827,7 @@ function getGitLabEnvironments() {
 
 //GITHUB SPECIFIC ENV VARIABLES
 const GITHUB_TOKEN =
-  process.env.GITHUB_TOKEN || core.getInput("GITHUB_TOKEN");
+  core.getInput("GITHUB_TOKEN") || process.env.GITHUB_TOKEN;
 
 const getEnvironments = () => {
   return (
