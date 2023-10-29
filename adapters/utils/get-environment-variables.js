@@ -4,16 +4,16 @@ dotenv.config();
 
 //Common env variables
 export const ATLAN_INSTANCE_URL = new URL(
-  process.env.ATLAN_INSTANCE_URL ?? core.getInput("ATLAN_INSTANCE_URL")
+  process.env.ATLAN_INSTANCE_URL || core.getInput("ATLAN_INSTANCE_URL")
 ).origin;
 
 export const ATLAN_API_TOKEN =
-  process.env.ATLAN_API_TOKEN ?? core.getInput("ATLAN_API_TOKEN");
+  process.env.ATLAN_API_TOKEN || core.getInput("ATLAN_API_TOKEN");
 
 export const IS_DEV = process.env.IS_DEV;
 
 export const IGNORE_MODEL_ALIAS_MATCHING =
-  (process.env.IGNORE_MODEL_ALIAS_MATCHING ??
+  (process.env.IGNORE_MODEL_ALIAS_MATCHING ||
     core.getInput("IGNORE_MODEL_ALIAS_MATCHING")) == "true";
 
 //GITLAB SPECIFIC ENV VARIABLES

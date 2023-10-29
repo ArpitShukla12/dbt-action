@@ -24781,16 +24781,16 @@ main.config();
 
 //Common env variables
 const ATLAN_INSTANCE_URL = new URL(
-  process.env.ATLAN_INSTANCE_URL ?? core.getInput("ATLAN_INSTANCE_URL")
+  process.env.ATLAN_INSTANCE_URL || core.getInput("ATLAN_INSTANCE_URL")
 ).origin;
 
 const ATLAN_API_TOKEN =
-  process.env.ATLAN_API_TOKEN ?? core.getInput("ATLAN_API_TOKEN");
+  process.env.ATLAN_API_TOKEN || core.getInput("ATLAN_API_TOKEN");
 
 const IS_DEV = process.env.IS_DEV;
 
 const IGNORE_MODEL_ALIAS_MATCHING =
-  (process.env.IGNORE_MODEL_ALIAS_MATCHING ??
+  (process.env.IGNORE_MODEL_ALIAS_MATCHING ||
     core.getInput("IGNORE_MODEL_ALIAS_MATCHING")) == "true";
 
 //GITLAB SPECIFIC ENV VARIABLES
@@ -33515,7 +33515,6 @@ class GitLabIntegration extends IntegrationInterface {
 
   async run() {
     const timeStart = Date.now();
-    console.log("oii");
     const gitlab = new dist_Gitlab({
       host: "https://gitlab.com",
       token: this.token,
@@ -33523,7 +33522,7 @@ class GitLabIntegration extends IntegrationInterface {
 
     if (!(await this.authIntegration({ gitlab })))
       throw { message: "Wrong API Token" };
-    console.log("Hmm");
+
     const { state, web_url, target_branch, diff_refs } =
       await gitlab.MergeRequests.show(CI_PROJECT_PATH, CI_MERGE_REQUEST_IID);
 
