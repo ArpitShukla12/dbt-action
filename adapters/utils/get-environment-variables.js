@@ -50,7 +50,7 @@ export function getGitLabEnvironments() {
 
 //GITHUB SPECIFIC ENV VARIABLES
 export const GITHUB_TOKEN =
-  process.env.GITHUB_TOKEN ?? core.getInput("GITHUB_TOKEN");
+  process.env.GITHUB_TOKEN || core.getInput("GITHUB_TOKEN");
 
 export const getEnvironments = () => {
   return (
