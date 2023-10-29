@@ -580,7 +580,7 @@ ${content}`;
       materialisedAsset?.attributes?.assetDbtEnvironmentName;
     const projectName = materialisedAsset?.attributes?.assetDbtProjectName;
     // Generating asset information
-    console.log("Hmmmm", asset.guid);
+
     const assetInfo = getAssetInfo(
       ATLAN_INSTANCE_URL,
       asset,

@@ -45,7 +45,7 @@ export default class GitLabIntegration extends IntegrationInterface {
 
   async run() {
     const timeStart = Date.now();
-
+    console.log("oii");
     const gitlab = new Gitlab({
       host: "https://gitlab.com",
       token: this.token,
@@ -53,7 +53,7 @@ export default class GitLabIntegration extends IntegrationInterface {
 
     if (!(await this.authIntegration({ gitlab })))
       throw { message: "Wrong API Token" };
-
+    console.log("Hmm");
     const { state, web_url, target_branch, diff_refs } =
       await gitlab.MergeRequests.show(CI_PROJECT_PATH, CI_MERGE_REQUEST_IID);
 
