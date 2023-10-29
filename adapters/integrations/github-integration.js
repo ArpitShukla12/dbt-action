@@ -1,5 +1,4 @@
 // githubIntegration.js
-import dotenv from "dotenv"; // Check do we actually need it or not
 import IntegrationInterface from "./contract/contract.js";
 import github from "@actions/github";
 import stringify from "json-stringify-safe";
@@ -31,8 +30,6 @@ import {
   ATLAN_INSTANCE_URL,
   IGNORE_MODEL_ALIAS_MATCHING,
 } from "../utils/get-environment-variables.js";
-
-dotenv.config();
 
 export default class GitHubIntegration extends IntegrationInterface {
   constructor(token) {
@@ -83,14 +80,14 @@ export default class GitHubIntegration extends IntegrationInterface {
       });
       const assetName = IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
 
-      // const environments = getEnvironments();
+      const environments = getEnvironments();
       let environment = null;
-      // for (const [baseBranchName, environmentName] of environments) {
-      //   if (baseBranchName === context.payload.pull_request.base.ref) {
-      //     environment = environmentName;
-      //     break;
-      //   }
-      // }
+      for (const [baseBranchName, environmentName] of environments) {
+        if (baseBranchName === context.payload.pull_request.base.ref) {
+          environment = environmentName;
+          break;
+        }
+      }
       const asset = await getAsset({
         name: assetName,
         sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
@@ -200,14 +197,14 @@ export default class GitHubIntegration extends IntegrationInterface {
 
       const assetName = IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
 
-      // const environments = getEnvironments();
+      const environments = getEnvironments();
       let environment = null;
-      // for (const [baseBranchName, environmentName] of environments) {
-      //   if (baseBranchName === context.payload.pull_request.base.ref) {
-      //     environment = environmentName;
-      //     break;
-      //   }
-      // }
+      for (const [baseBranchName, environmentName] of environments) {
+        if (baseBranchName === context.payload.pull_request.base.ref) {
+          environment = environmentName;
+          break;
+        }
+      }
 
       const asset = await getAsset({
         name: assetName,
