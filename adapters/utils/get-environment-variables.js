@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-
+import core from "@actions/core";
 dotenv.config();
 
 //Common env variables
