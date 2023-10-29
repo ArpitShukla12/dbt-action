@@ -2,7 +2,6 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-//Common env variables
 export const ATLAN_INSTANCE_URL = new URL(
   process.env.ATLAN_INSTANCE_URL ?? core.getInput("ATLAN_INSTANCE_URL")
 ).origin;

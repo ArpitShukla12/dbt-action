@@ -1,6 +1,4 @@
 // gitlabIntegration.js
-import dotenv from "dotenv";
-
 import IntegrationInterface from "./contract/contract.js";
 import { Gitlab } from "@gitbeaker/rest";
 import {
@@ -11,7 +9,6 @@ import {
   getClassifications,
 } from "../api/index.js";
 import {
-  getImageURL,
   auth,
   getConnectorImage,
   getCertificationImage,
@@ -35,12 +32,11 @@ import {
   CI_MERGE_REQUEST_IID,
   CI_PROJECT_ID,
   CI_JOB_URL,
-  IS_IGNORE_MODEL_ALIAS_MATCHING,
+  IGNORE_MODEL_ALIAS_MATCHING,
   CI_COMMIT_MESSAGE,
   GITLAB_USER_LOGIN,
   CI_PROJECT_NAME,
-} from "../environmentVariables/gitlab-integration.js";
-dotenv.config();
+} from "../utils/get-environment-variables.js";
 
 export default class GitLabIntegration extends IntegrationInterface {
   constructor(token) {
@@ -100,7 +96,7 @@ export default class GitLabIntegration extends IntegrationInterface {
         filePath,
         headSHA,
       });
-      const assetName = IS_IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
+      const assetName = IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
 
       const environments = getGitLabEnvironments();
       let environment = null;
@@ -213,7 +209,7 @@ export default class GitLabIntegration extends IntegrationInterface {
         headSHA,
       });
 
-      const assetName = IS_IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
+      const assetName = IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
 
       const environments = getGitLabEnvironments();
       let environment = null;

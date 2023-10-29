@@ -1,8 +1,8 @@
 import fetch from "node-fetch";
-import { getAPIToken, getInstanceUrl } from "../utils/index.js";
-
-const ATLAN_INSTANCE_URL = getInstanceUrl();
-const ATLAN_API_TOKEN = getAPIToken();
+import {
+  ATLAN_INSTANCE_URL,
+  ATLAN_API_TOKEN,
+} from "../utils/get-environment-variables.js";
 
 export default async function getClassifications({
   sendSegmentEventOfIntegration,

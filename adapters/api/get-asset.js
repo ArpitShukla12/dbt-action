@@ -1,18 +1,13 @@
 import fetch from "node-fetch";
-import core from "@actions/core";
-import dotenv from "dotenv";
 import stringify from "json-stringify-safe";
 import {
   getErrorModelNotFound,
   getErrorDoesNotMaterialize,
 } from "../templates/atlan.js";
-
-dotenv.config();
-
-const ATLAN_INSTANCE_URL =
-  core.getInput("ATLAN_INSTANCE_URL") || process.env.ATLAN_INSTANCE_URL;
-const ATLAN_API_TOKEN =
-  core.getInput("ATLAN_API_TOKEN") || process.env.ATLAN_API_TOKEN;
+import {
+  ATLAN_INSTANCE_URL,
+  ATLAN_API_TOKEN,
+} from "../utils/get-environment-variables.js";
 
 export default async function getAsset({
   name,

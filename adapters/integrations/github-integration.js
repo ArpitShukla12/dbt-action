@@ -6,13 +6,9 @@ import stringify from "json-stringify-safe";
 import {
   getCertificationImage,
   getConnectorImage,
-  isIgnoreModelAliasMatching,
   getEnvironments,
-  getImageURL,
   auth,
-  isDev,
   truncate,
-  getInstanceUrl,
 } from "../utils/index.js";
 import {
   getAsset,
@@ -30,8 +26,11 @@ import {
   getViewAssetButton,
 } from "../templates/github-integration.js";
 import { getNewModelAddedComment, getBaseComment } from "../templates/atlan.js";
-const IS_DEV = isDev();
-const ATLAN_INSTANCE_URL = getInstanceUrl();
+import {
+  IS_DEV,
+  ATLAN_INSTANCE_URL,
+  IGNORE_MODEL_ALIAS_MATCHING,
+} from "../utils/get-environment-variables.js";
 
 dotenv.config();
 
@@ -82,7 +81,7 @@ export default class GitHubIntegration extends IntegrationInterface {
         fileName,
         filePath,
       });
-      const assetName = isIgnoreModelAliasMatching() ? fileName : aliasName;
+      const assetName = IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
 
       const environments = getEnvironments();
       let environment = null;
@@ -199,7 +198,7 @@ export default class GitHubIntegration extends IntegrationInterface {
         filePath,
       });
 
-      const assetName = isIgnoreModelAliasMatching() ? fileName : aliasName;
+      const assetName = IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
 
       const environments = getEnvironments();
       let environment = null;

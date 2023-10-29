@@ -1,13 +1,8 @@
 import fetch from "node-fetch";
-import dotenv from "dotenv";
-import core from "@actions/core";
-
-dotenv.config();
-
-const ATLAN_INSTANCE_URL =
-  core.getInput("ATLAN_INSTANCE_URL") || process.env.ATLAN_INSTANCE_URL;
-const ATLAN_API_TOKEN =
-  core.getInput("ATLAN_API_TOKEN") || process.env.ATLAN_API_TOKEN;
+import {
+  ATLAN_INSTANCE_URL,
+  ATLAN_API_TOKEN,
+} from "./get-environment-variables.js";
 
 export async function auth() {
   var myHeaders = {
