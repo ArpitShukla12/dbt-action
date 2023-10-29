@@ -83,14 +83,14 @@ export default class GitHubIntegration extends IntegrationInterface {
       });
       const assetName = IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
 
-      const environments = getEnvironments();
+      // const environments = getEnvironments();
       let environment = null;
-      for (const [baseBranchName, environmentName] of environments) {
-        if (baseBranchName === context.payload.pull_request.base.ref) {
-          environment = environmentName;
-          break;
-        }
-      }
+      // for (const [baseBranchName, environmentName] of environments) {
+      //   if (baseBranchName === context.payload.pull_request.base.ref) {
+      //     environment = environmentName;
+      //     break;
+      //   }
+      // }
       const asset = await getAsset({
         name: assetName,
         sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
@@ -200,14 +200,14 @@ export default class GitHubIntegration extends IntegrationInterface {
 
       const assetName = IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
 
-      const environments = getEnvironments();
+      // const environments = getEnvironments();
       let environment = null;
-      for (const [baseBranchName, environmentName] of environments) {
-        if (baseBranchName === context.payload.pull_request.base.ref) {
-          environment = environmentName;
-          break;
-        }
-      }
+      // for (const [baseBranchName, environmentName] of environments) {
+      //   if (baseBranchName === context.payload.pull_request.base.ref) {
+      //     environment = environmentName;
+      //     break;
+      //   }
+      // }
 
       const asset = await getAsset({
         name: assetName,

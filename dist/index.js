@@ -24773,7 +24773,7 @@ function fixResponseChunkedTransferBadEnding(request, errorCallback) {
 }
 
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
-var core = __nccwpck_require__(2186);
+var lib_core = __nccwpck_require__(2186);
 ;// CONCATENATED MODULE: ./adapters/utils/get-environment-variables.js
 
 
@@ -24781,17 +24781,17 @@ main.config();
 
 //Common env variables
 const ATLAN_INSTANCE_URL = new URL(
-  process.env.ATLAN_INSTANCE_URL || core.getInput("ATLAN_INSTANCE_URL")
+  process.env.ATLAN_INSTANCE_URL || lib_core.getInput("ATLAN_INSTANCE_URL")
 ).origin;
 
 const ATLAN_API_TOKEN =
-  process.env.ATLAN_API_TOKEN || core.getInput("ATLAN_API_TOKEN");
+  process.env.ATLAN_API_TOKEN || lib_core.getInput("ATLAN_API_TOKEN");
 
 const IS_DEV = process.env.IS_DEV;
 
 const IGNORE_MODEL_ALIAS_MATCHING =
   (process.env.IGNORE_MODEL_ALIAS_MATCHING ||
-    core.getInput("IGNORE_MODEL_ALIAS_MATCHING")) == "true";
+    lib_core.getInput("IGNORE_MODEL_ALIAS_MATCHING")) == "true";
 
 //GITLAB SPECIFIC ENV VARIABLES
 const {
@@ -24827,11 +24827,12 @@ function getGitLabEnvironments() {
 
 //GITHUB SPECIFIC ENV VARIABLES
 const GITHUB_TOKEN =
-  core.getInput("GITHUB_TOKEN") || process.env.GITHUB_TOKEN;
+  lib_core.getInput("GITHUB_TOKEN") || process.env.GITHUB_TOKEN;
 
 const getEnvironments = () => {
   return (
-    core.getInput("DBT_ENVIRONMENT_BRANCH_MAP")
+    core
+      .getInput("DBT_ENVIRONMENT_BRANCH_MAP")
       ?.trim()
       ?.split("\n")
       ?.map((i) => i.split(":").map((i) => i.trim())) ?? []
@@ -25468,14 +25469,14 @@ class GitHubIntegration extends IntegrationInterface {
       });
       const assetName = IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
 
-      const environments = getEnvironments();
+      // const environments = getEnvironments();
       let environment = null;
-      for (const [baseBranchName, environmentName] of environments) {
-        if (baseBranchName === context.payload.pull_request.base.ref) {
-          environment = environmentName;
-          break;
-        }
-      }
+      // for (const [baseBranchName, environmentName] of environments) {
+      //   if (baseBranchName === context.payload.pull_request.base.ref) {
+      //     environment = environmentName;
+      //     break;
+      //   }
+      // }
       const asset = await getAsset({
         name: assetName,
         sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
@@ -25585,14 +25586,14 @@ class GitHubIntegration extends IntegrationInterface {
 
       const assetName = IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
 
-      const environments = getEnvironments();
+      // const environments = getEnvironments();
       let environment = null;
-      for (const [baseBranchName, environmentName] of environments) {
-        if (baseBranchName === context.payload.pull_request.base.ref) {
-          environment = environmentName;
-          break;
-        }
-      }
+      // for (const [baseBranchName, environmentName] of environments) {
+      //   if (baseBranchName === context.payload.pull_request.base.ref) {
+      //     environment = environmentName;
+      //     break;
+      //   }
+      // }
 
       const asset = await getAsset({
         name: assetName,
@@ -33567,15 +33568,15 @@ class GitLabIntegration extends IntegrationInterface {
       });
       const assetName = IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
 
-      const environments = getGitLabEnvironments();
+      // const environments = getGitLabEnvironments();
       let environment = null;
-      for (const baseBranchName of Object.keys(environments)) {
-        const environmentName = environments[baseBranchName];
-        if (baseBranchName === target_branch) {
-          environment = environmentName;
-          break;
-        }
-      }
+      // for (const baseBranchName of Object.keys(environments)) {
+      //   const environmentName = environments[baseBranchName];
+      //   if (baseBranchName === target_branch) {
+      //     environment = environmentName;
+      //     break;
+      //   }
+      // }
 
       const asset = await getAsset({
         name: assetName,
@@ -33680,15 +33681,15 @@ class GitLabIntegration extends IntegrationInterface {
 
       const assetName = IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
 
-      const environments = getGitLabEnvironments();
+      // const environments = getGitLabEnvironments();
       let environment = null;
-      for (const baseBranchName of Object.keys(environments)) {
-        const environmentName = environments[baseBranchName];
-        if (baseBranchName === target_branch) {
-          environment = environmentName;
-          break;
-        }
-      }
+      // for (const baseBranchName of Object.keys(environments)) {
+      //   const environmentName = environments[baseBranchName];
+      //   if (baseBranchName === target_branch) {
+      //     environment = environmentName;
+      //     break;
+      //   }
+      // }
 
       const asset = await getAsset({
         name: assetName,
