@@ -24827,7 +24827,7 @@ function getGitLabEnvironments() {
 
 //GITHUB SPECIFIC ENV VARIABLES
 const GITHUB_TOKEN =
-  process.env.GITHUB_TOKEN ?? core.getInput("GITHUB_TOKEN");
+  process.env.GITHUB_TOKEN || core.getInput("GITHUB_TOKEN");
 
 const getEnvironments = () => {
   return (
@@ -33515,7 +33515,7 @@ class GitLabIntegration extends IntegrationInterface {
 
   async run() {
     const timeStart = Date.now();
-
+    console.log("oii");
     const gitlab = new dist_Gitlab({
       host: "https://gitlab.com",
       token: this.token,
@@ -33523,7 +33523,7 @@ class GitLabIntegration extends IntegrationInterface {
 
     if (!(await this.authIntegration({ gitlab })))
       throw { message: "Wrong API Token" };
-
+    console.log("Hmm");
     const { state, web_url, target_branch, diff_refs } =
       await gitlab.MergeRequests.show(CI_PROJECT_PATH, CI_MERGE_REQUEST_IID);
 
