@@ -24804,16 +24804,13 @@ async function getCIMergeRequestIID(
       CI_PROJECT_ID,
       CI_COMMIT_SHA
     );
-    console.log("CI_PROJECT_ID", CI_PROJECT_ID);
-    console.log("CI_COMMIT_SHA", CI_COMMIT_SHA);
-    console.log("Merge Request Commit :", mergeRequestCommit);
+
     const firstMergeRequest = mergeRequestCommit[0];
     if (firstMergeRequest) {
-      console.log(firstMergeRequest.iid); // Log the IID for reference
       return firstMergeRequest.iid;
     }
   }
-  console.log("Wut");
+
   return process.env.CI_MERGE_REQUEST_IID;
 }
 
@@ -33541,14 +33538,13 @@ class GitLabIntegration extends IntegrationInterface {
       host: "https://gitlab.com",
       token: this.token,
     });
-    console.log("Is it here?");
 
     CI_MERGE_REQUEST_IID = await getCIMergeRequestIID(
       gitlab,
       CI_PROJECT_ID,
       CI_COMMIT_SHA
     );
-    console.log(CI_MERGE_REQUEST_IID);
+
     var mergeRequestCommit = await gitlab.Commits.allMergeRequests(
       CI_PROJECT_ID,
       CI_COMMIT_SHA
@@ -33558,13 +33554,8 @@ class GitLabIntegration extends IntegrationInterface {
       throw { message: "Wrong API Token" };
 
     let total_assets = 0;
-    console.log("before");
-    console.log("CI_PROJECT_ID", CI_PROJECT_ID);
-    console.log("CI_COMMIT_SHA", CI_COMMIT_SHA);
 
-    console.log(mergeRequestCommit);
     if (mergeRequestCommit.length && mergeRequestCommit[0]?.state == "merged") {
-      console.log("Hell yeah");
       const { web_url, target_branch, diff_refs } =
         await gitlab.MergeRequests.show(
           CI_PROJECT_PATH,
@@ -33581,32 +33572,13 @@ class GitLabIntegration extends IntegrationInterface {
         CI_PROJECT_PATH,
         CI_MERGE_REQUEST_IID
       );
-      console.log("Hmmm");
+
       total_assets = await this.printDownstreamAssets({
         gitlab,
         target_branch,
         diff_refs,
       });
     }
-
-    // const { state, web_url, target_branch, diff_refs } =
-    //   await gitlab.MergeRequests.show(CI_PROJECT_PATH, CI_MERGE_REQUEST_IID);
-
-    // let total_assets = 0;
-    // if (state === "opened") {
-    //   total_assets = await this.printDownstreamAssets({
-    //     gitlab,
-    //     target_branch,
-    //     diff_refs,
-    //   });
-    // } else if (state === "merged") {
-    //   total_assets = await this.setResourceOnAsset({
-    //     gitlab,
-    //     web_url,
-    //     target_branch,
-    //     diff_refs,
-    //   });
-    // }
 
     if (total_assets !== 0)
       this.sendSegmentEventOfIntegration({
@@ -33834,9 +33806,9 @@ class GitLabIntegration extends IntegrationInterface {
 
   async authIntegration({ gitlab }) {
     const response = await auth();
-    console.log("Bruhh?");
+
     const existingComment = await this.checkCommentExists({ gitlab });
-    console.log("I C");
+
     if (response?.status === 401) {
       await this.createIssueComment({
         gitlab,
@@ -33998,8 +33970,7 @@ ${content}`;
 
   async checkCommentExists({ gitlab }) {
     if (IS_DEV) return null;
-    console.log("CI_PROJECT_PATH", CI_PROJECT_PATH);
-    console.log("CI_MERGE_REQUEST_IID", CI_MERGE_REQUEST_IID);
+
     const comments = await gitlab.MergeRequestNotes.all(
       CI_PROJECT_PATH,
       CI_MERGE_REQUEST_IID
