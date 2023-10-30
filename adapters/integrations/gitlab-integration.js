@@ -56,6 +56,8 @@ export default class GitLabIntegration extends IntegrationInterface {
 
     let total_assets = 0;
     console.log("before");
+    console.log("CI_PROJECT_ID", CI_PROJECT_ID);
+    console.log("CI_COMMIT_SHA", CI_COMMIT_SHA);
     var mergeRequestCommit = gitlab.Commits.allMergeRequests(
       CI_PROJECT_ID,
       CI_COMMIT_SHA
