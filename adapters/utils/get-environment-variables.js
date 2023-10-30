@@ -17,9 +17,13 @@ export const IGNORE_MODEL_ALIAS_MATCHING =
     core.getInput("IGNORE_MODEL_ALIAS_MATCHING")) == "true";
 
 //GITLAB SPECIFIC ENV VARIABLES
-export function getCIMergeRequestIID(gitlab, CI_PROJECT_ID, CI_COMMIT_SHA) {
+export async function getCIMergeRequestIID(
+  gitlab,
+  CI_PROJECT_ID,
+  CI_COMMIT_SHA
+) {
   if (!process.env.CI_MERGE_REQUEST_IID) {
-    const mergeRequestCommit = gitlab.Commits.allMergeRequests(
+    const mergeRequestCommit = await gitlab.Commits.allMergeRequests(
       CI_PROJECT_ID,
       CI_COMMIT_SHA
     );
