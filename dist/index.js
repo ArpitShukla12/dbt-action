@@ -24796,14 +24796,23 @@ const IGNORE_MODEL_ALIAS_MATCHING =
 //GITLAB SPECIFIC ENV VARIABLES
 function getCIMergeRequestIID(gitlab, CI_PROJECT_ID, CI_COMMIT_SHA) {
   if (!process.env.CI_MERGE_REQUEST_IID) {
-    var mergeRequestCommit = gitlab.Commits.allMergeRequests(
+    const mergeRequestCommit = gitlab.Commits.allMergeRequests(
       CI_PROJECT_ID,
       CI_COMMIT_SHA
     );
-    return mergeRequestCommit[0]?.iid;
+    console.log("CI_PROJECT_ID", CI_PROJECT_ID);
+    console.log("CI_COMMIT_SHA", CI_COMMIT_SHA);
+    console.log("Merge Request Commit :", mergeRequestCommit);
+    const firstMergeRequest = mergeRequestCommit[0];
+    if (firstMergeRequest) {
+      console.log(firstMergeRequest.iid); // Log the IID for reference
+      return firstMergeRequest.iid;
+    }
   }
+  console.log("Wut");
   return process.env.CI_MERGE_REQUEST_IID;
 }
+
 const {
   CI_PROJECT_PATH,
   CI_PROJECT_ID,
