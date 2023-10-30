@@ -25494,7 +25494,7 @@ class GitHubIntegration extends IntegrationInterface {
         continue;
       }
 
-      const materialisedAsset = asset.attributes.dbtModelSqlAssets[0];
+      const materialisedAsset = asset?.attributes?.dbtModelSqlAssets?.[0];
       const timeStart = Date.now();
 
       const totalModifiedFiles = changedFiles.filter(
@@ -25559,7 +25559,7 @@ class GitHubIntegration extends IntegrationInterface {
       await this.deleteComment({
         octokit,
         context,
-        comment_id: existingComment.id,
+        comment_id: existingComment?.id,
       });
 
     return totalChangedFiles;
@@ -25602,7 +25602,7 @@ class GitHubIntegration extends IntegrationInterface {
         continue;
       }
 
-      const materialisedAsset = asset.attributes.dbtModelSqlAssets[0];
+      const materialisedAsset = asset?.attributes?.dbtModelSqlAssets?.[0];
       const timeStart = Date.now();
 
       const totalModifiedFiles = changedFiles.filter(
@@ -33595,7 +33595,7 @@ class GitLabIntegration extends IntegrationInterface {
         continue;
       }
 
-      const materialisedAsset = asset.attributes.dbtModelSqlAssets[0];
+      const materialisedAsset = asset?.attributes?.dbtModelSqlAssets?.[0];
       const timeStart = Date.now();
 
       const totalModifiedFiles = changedFiles.filter(
@@ -33656,7 +33656,7 @@ class GitLabIntegration extends IntegrationInterface {
       });
 
     if (totalChangedFiles === 0 && existingComment)
-      await this.deleteComment({ gitlab, comment_id: existingComment.id });
+      await this.deleteComment({ gitlab, comment_id: existingComment?.id });
 
     return totalChangedFiles;
   }
@@ -33696,7 +33696,7 @@ class GitLabIntegration extends IntegrationInterface {
 
       if (asset.error) continue;
 
-      const materialisedAsset = asset.attributes.dbtModelSqlAssets[0];
+      const materialisedAsset = asset?.attributes?.dbtModelSqlAssets?.[0];
       const timeStart = Date.now();
 
       const totalModifiedFiles = changedFiles.filter(
@@ -33729,7 +33729,8 @@ class GitLabIntegration extends IntegrationInterface {
       });
 
       const { guid: modelGuid } = asset;
-      const { guid: tableAssetGuid } = asset.attributes.dbtModelSqlAssets[0];
+      const { guid: tableAssetGuid } =
+        asset?.attributes?.dbtModelSqlAssets?.[0];
 
       var lines = CI_COMMIT_MESSAGE.split("\n");
       var CI_MERGE_REQUEST_TITLE = lines[2];
@@ -33898,7 +33899,7 @@ ${content}`;
 
   async getAssetName({ gitlab, fileName, filePath, headSHA }) {
     var regExp =
-      /{{\s*config\s*\(\s*(?:[^,]*,)*\s*alias\s*=\s*['"]([^'"]+)['"](?:\s*,[^,]*)*\s*\)\s*}}/im; //Changed
+      /{{\s*config\s*\(\s*(?:[^,]*,)*\s*alias\s*=\s*['"]([^'"]+)['"](?:\s*,[^,]*)*\s*\)\s*}}/im;
     var fileContents = await this.getFileContents({
       gitlab,
       filePath,

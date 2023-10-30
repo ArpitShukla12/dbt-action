@@ -109,7 +109,7 @@ export default class GitHubIntegration extends IntegrationInterface {
         continue;
       }
 
-      const materialisedAsset = asset.attributes.dbtModelSqlAssets[0];
+      const materialisedAsset = asset?.attributes?.dbtModelSqlAssets?.[0];
       const timeStart = Date.now();
 
       const totalModifiedFiles = changedFiles.filter(
@@ -174,7 +174,7 @@ export default class GitHubIntegration extends IntegrationInterface {
       await this.deleteComment({
         octokit,
         context,
-        comment_id: existingComment.id,
+        comment_id: existingComment?.id,
       });
 
     return totalChangedFiles;
@@ -217,7 +217,7 @@ export default class GitHubIntegration extends IntegrationInterface {
         continue;
       }
 
-      const materialisedAsset = asset.attributes.dbtModelSqlAssets[0];
+      const materialisedAsset = asset?.attributes?.dbtModelSqlAssets?.[0];
       const timeStart = Date.now();
 
       const totalModifiedFiles = changedFiles.filter(
