@@ -33543,7 +33543,7 @@ class GitLabIntegration extends IntegrationInterface {
     });
     console.log("Is it here?");
 
-    CI_MERGE_REQUEST_IID = getCIMergeRequestIID(
+    CI_MERGE_REQUEST_IID = await getCIMergeRequestIID(
       gitlab,
       CI_PROJECT_ID,
       CI_COMMIT_SHA
