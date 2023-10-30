@@ -499,7 +499,8 @@ ${content}`;
 
   async checkCommentExists({ gitlab }) {
     if (IS_DEV) return null;
-
+    console.log("CI_PROJECT_PATH", CI_PROJECT_PATH);
+    console.log("CI_MERGE_REQUEST_IID", CI_MERGE_REQUEST_IID);
     const comments = await gitlab.MergeRequestNotes.all(
       CI_PROJECT_PATH,
       CI_MERGE_REQUEST_IID

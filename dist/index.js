@@ -24794,7 +24794,7 @@ const IGNORE_MODEL_ALIAS_MATCHING =
     core.getInput("IGNORE_MODEL_ALIAS_MATCHING")) == "true";
 
 //GITLAB SPECIFIC ENV VARIABLES
-let CI_MERGE_REQUEST_IID = process.env.CI_MERGE_REQUEST_IID;
+var CI_MERGE_REQUEST_IID = process.env.CI_MERGE_REQUEST_IID;
 const {
   CI_PROJECT_PATH,
   CI_PROJECT_ID,
@@ -33966,7 +33966,8 @@ ${content}`;
 
   async checkCommentExists({ gitlab }) {
     if (IS_DEV) return null;
-
+    console.log("CI_PROJECT_PATH", CI_PROJECT_PATH);
+    console.log("CI_MERGE_REQUEST_IID", CI_MERGE_REQUEST_IID);
     const comments = await gitlab.MergeRequestNotes.all(
       CI_PROJECT_PATH,
       CI_MERGE_REQUEST_IID
