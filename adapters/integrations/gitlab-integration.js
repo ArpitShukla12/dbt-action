@@ -51,6 +51,14 @@ export default class GitLabIntegration extends IntegrationInterface {
       token: this.token,
     });
     console.log("Is it here?");
+
+    var mergeRequestCommit = gitlab.Commits.allMergeRequests(
+      CI_PROJECT_ID,
+      CI_COMMIT_SHA
+    );
+    if (!CI_MERGE_REQUEST_IID) {
+      CI_MERGE_REQUEST_IID = mergeRequestCommit[0]?.iid;
+    }
     if (!(await this.authIntegration({ gitlab })))
       throw { message: "Wrong API Token" };
 
@@ -58,14 +66,10 @@ export default class GitLabIntegration extends IntegrationInterface {
     console.log("before");
     console.log("CI_PROJECT_ID", CI_PROJECT_ID);
     console.log("CI_COMMIT_SHA", CI_COMMIT_SHA);
-    var mergeRequestCommit = gitlab.Commits.allMergeRequests(
-      CI_PROJECT_ID,
-      CI_COMMIT_SHA
-    );
+
     console.log(mergeRequestCommit);
     if (mergeRequestCommit.length && mergeRequestCommit[0]?.state == "merged") {
       console.log("Hell yeah");
-      CI_MERGE_REQUEST_IID = mergeRequestCommit[0]?.iid;
       const { web_url, target_branch, diff_refs } =
         await gitlab.MergeRequests.show(
           CI_PROJECT_PATH,
