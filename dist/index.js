@@ -24803,6 +24803,7 @@ const {
   CI_COMMIT_MESSAGE,
   GITLAB_USER_LOGIN,
   CI_PROJECT_NAME,
+  CI_COMMIT_SHA,
 } = process.env;
 
 function getGitLabEnvironments() {
@@ -33520,24 +33521,55 @@ class GitLabIntegration extends IntegrationInterface {
     if (!(await this.authIntegration({ gitlab })))
       throw { message: "Wrong API Token" };
 
-    const { state, web_url, target_branch, diff_refs } =
-      await gitlab.MergeRequests.show(CI_PROJECT_PATH, CI_MERGE_REQUEST_IID);
-
-    let total_assets = 0;
-    if (state === "opened") {
-      total_assets = await this.printDownstreamAssets({
-        gitlab,
-        target_branch,
-        diff_refs,
-      });
-    } else if (state === "merged") {
+    var mergeRequestCommit = gitlab.Commits.allMergeRequests(
+      CI_PROJECT_ID,
+      CI_COMMIT_SHA
+    );
+    console.log(mergeRequestCommit);
+    if (mergeRequestCommit.length && mergeRequestCommit[0]?.state == "merged") {
+      console.log("Hell yeah");
+      const { web_url, target_branch, diff_refs } =
+        await gitlab.MergeRequests.show(
+          CI_PROJECT_PATH,
+          mergeRequestCommit[0]?.iid
+        );
       total_assets = await this.setResourceOnAsset({
         gitlab,
         web_url,
         target_branch,
         diff_refs,
       });
+    } else {
+      const { target_branch, diff_refs } = await gitlab.MergeRequests.show(
+        CI_PROJECT_PATH,
+        CI_MERGE_REQUEST_IID
+      );
+      console.log("Hmmm");
+      total_assets = await this.printDownstreamAssets({
+        gitlab,
+        target_branch,
+        diff_refs,
+      });
     }
+
+    // const { state, web_url, target_branch, diff_refs } =
+    //   await gitlab.MergeRequests.show(CI_PROJECT_PATH, CI_MERGE_REQUEST_IID);
+
+    // let total_assets = 0;
+    // if (state === "opened") {
+    //   total_assets = await this.printDownstreamAssets({
+    //     gitlab,
+    //     target_branch,
+    //     diff_refs,
+    //   });
+    // } else if (state === "merged") {
+    //   total_assets = await this.setResourceOnAsset({
+    //     gitlab,
+    //     web_url,
+    //     target_branch,
+    //     diff_refs,
+    //   });
+    // }
 
     if (total_assets !== 0)
       this.sendSegmentEventOfIntegration({

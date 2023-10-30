@@ -26,6 +26,7 @@ export const {
   CI_COMMIT_MESSAGE,
   GITLAB_USER_LOGIN,
   CI_PROJECT_NAME,
+  CI_COMMIT_SHA,
 } = process.env;
 
 export function getGitLabEnvironments() {
