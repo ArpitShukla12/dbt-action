@@ -50,12 +50,12 @@ export default class GitLabIntegration extends IntegrationInterface {
       host: "https://gitlab.com",
       token: this.token,
     });
-
+    console.log("Is it here?");
     if (!(await this.authIntegration({ gitlab })))
       throw { message: "Wrong API Token" };
 
     let total_assets = 0;
-
+    console.log("before");
     var mergeRequestCommit = gitlab.Commits.allMergeRequests(
       CI_PROJECT_ID,
       CI_COMMIT_SHA
