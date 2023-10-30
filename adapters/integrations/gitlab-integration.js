@@ -65,6 +65,7 @@ export default class GitLabIntegration extends IntegrationInterface {
     console.log(mergeRequestCommit);
     if (mergeRequestCommit.length && mergeRequestCommit[0]?.state == "merged") {
       console.log("Hell yeah");
+      CI_MERGE_REQUEST_IID = mergeRequestCommit[0]?.iid;
       const { web_url, target_branch, diff_refs } =
         await gitlab.MergeRequests.show(
           CI_PROJECT_PATH,
@@ -334,8 +335,9 @@ export default class GitLabIntegration extends IntegrationInterface {
 
   async authIntegration({ gitlab }) {
     const response = await auth();
-
+    console.log("Bruhh?");
     const existingComment = await this.checkCommentExists({ gitlab });
+    console.log("I C");
     if (response?.status === 401) {
       await this.createIssueComment({
         gitlab,
