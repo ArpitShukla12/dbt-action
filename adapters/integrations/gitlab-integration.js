@@ -60,7 +60,7 @@ export default class GitLabIntegration extends IntegrationInterface {
       CI_COMMIT_SHA
     );
     console.log(CI_MERGE_REQUEST_IID);
-    var mergeRequestCommit = gitlab.Commits.allMergeRequests(
+    var mergeRequestCommit = await gitlab.Commits.allMergeRequests(
       CI_PROJECT_ID,
       CI_COMMIT_SHA
     );
