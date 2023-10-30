@@ -24794,7 +24794,16 @@ const IGNORE_MODEL_ALIAS_MATCHING =
     core.getInput("IGNORE_MODEL_ALIAS_MATCHING")) == "true";
 
 //GITLAB SPECIFIC ENV VARIABLES
-var CI_MERGE_REQUEST_IID = process.env.CI_MERGE_REQUEST_IID;
+function getCIMergeRequestIID(gitlab, CI_PROJECT_ID, CI_COMMIT_SHA) {
+  if (!process.env.CI_MERGE_REQUEST_IID) {
+    var mergeRequestCommit = gitlab.Commits.allMergeRequests(
+      CI_PROJECT_ID,
+      CI_COMMIT_SHA
+    );
+    return mergeRequestCommit[0]?.iid;
+  }
+  return process.env.CI_MERGE_REQUEST_IID;
+}
 const {
   CI_PROJECT_PATH,
   CI_PROJECT_ID,
@@ -33506,6 +33515,8 @@ function gitlab_integration_getViewAssetButton(ATLAN_INSTANCE_URL, asset) {
 
 
 
+var CI_MERGE_REQUEST_IID;
+
 class GitLabIntegration extends IntegrationInterface {
   constructor(token) {
     super(token);
@@ -33519,13 +33530,17 @@ class GitLabIntegration extends IntegrationInterface {
     });
     console.log("Is it here?");
 
+    CI_MERGE_REQUEST_IID = getCIMergeRequestIID(
+      gitlab,
+      CI_PROJECT_ID,
+      CI_COMMIT_SHA
+    );
+    console.log(CI_MERGE_REQUEST_IID);
     var mergeRequestCommit = gitlab.Commits.allMergeRequests(
       CI_PROJECT_ID,
       CI_COMMIT_SHA
     );
-    if (!CI_MERGE_REQUEST_IID) {
-      CI_MERGE_REQUEST_IID = mergeRequestCommit[0]?.iid;
-    }
+
     if (!(await this.authIntegration({ gitlab })))
       throw { message: "Wrong API Token" };
 

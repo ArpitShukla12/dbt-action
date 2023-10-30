@@ -29,7 +29,6 @@ import {
   IS_DEV,
   ATLAN_INSTANCE_URL,
   CI_PROJECT_PATH,
-  CI_MERGE_REQUEST_IID,
   CI_PROJECT_ID,
   CI_JOB_URL,
   IGNORE_MODEL_ALIAS_MATCHING,
@@ -37,7 +36,10 @@ import {
   GITLAB_USER_LOGIN,
   CI_PROJECT_NAME,
   CI_COMMIT_SHA,
+  getCIMergeRequestIID,
 } from "../utils/get-environment-variables.js";
+
+var CI_MERGE_REQUEST_IID;
 
 export default class GitLabIntegration extends IntegrationInterface {
   constructor(token) {
@@ -52,13 +54,17 @@ export default class GitLabIntegration extends IntegrationInterface {
     });
     console.log("Is it here?");
 
+    CI_MERGE_REQUEST_IID = getCIMergeRequestIID(
+      gitlab,
+      CI_PROJECT_ID,
+      CI_COMMIT_SHA
+    );
+    console.log(CI_MERGE_REQUEST_IID);
     var mergeRequestCommit = gitlab.Commits.allMergeRequests(
       CI_PROJECT_ID,
       CI_COMMIT_SHA
     );
-    if (!CI_MERGE_REQUEST_IID) {
-      CI_MERGE_REQUEST_IID = mergeRequestCommit[0]?.iid;
-    }
+
     if (!(await this.authIntegration({ gitlab })))
       throw { message: "Wrong API Token" };
 
