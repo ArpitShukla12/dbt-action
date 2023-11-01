@@ -19,10 +19,15 @@ Make sure your Atlan Instance URL is set in the following format.
 Set your repository action secrets [here](https://github.com/${context.payload.repository.full_name}/settings/secrets/actions). For more information on how to setup the Atlan dbt Action, please read the [setup documentation here](https://github.com/atlanhq/dbt-action/blob/main/README.md).`
 }
 
-export function getSetResourceOnAssetComment() {
-    return `🎊 Congrats on the merge!
-
-This pull request has been added as a resource to all the assets modified. ✅`
+export function getSetResourceOnAssetComment(tableMd, setResourceFailed) {
+    return `## 🎊 Congrats on the merge!
+  
+    This pull request has been added as a resource to the following assets:
+    Name | Resource set successfully
+    --- | ---
+    ${tableMd}
+    ${setResourceFailed ? '> Seems like we were unable to set the resources for some of the assets due to insufficient permissions. To ensure that the pull request is linked as a resource, you will need to assign the right persona with requisite permissions to the API token.' : ''}
+    `
 }
 
 export function getAssetInfo(ATLAN_INSTANCE_URL, asset, materialisedAsset, environmentName, projectName) {
@@ -78,4 +83,20 @@ export function getViewAssetButton(ATLAN_INSTANCE_URL, asset) {
       )} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${
         asset.guid
       }/overview?utm_source=dbt_github_action)`
+}
+
+export function getMDCommentForModel(ATLAN_INSTANCE_URL, model) {
+    return `${getConnectorImage(model?.attributes?.connectorName)} [${
+        model?.displayText
+      }](${ATLAN_INSTANCE_URL}/assets/${model?.guid}/overview?utm_source=dbt_github_action)`
+}
+
+export function getMDCommentForMaterialisedView(ATLAN_INSTANCE_URL, materialisedView) {
+    return `${getConnectorImage(materialisedView?.attributes?.connectorName)} [${
+        materialisedView?.attributes?.name
+      }](${ATLAN_INSTANCE_URL}/assets/${materialisedView?.guid}/overview?utm_source=dbt_github_action)`
+}
+
+export function getTableMD(md, resp) {
+    return `${md} | ${resp ? '✅' : '❌'} \n`
 }

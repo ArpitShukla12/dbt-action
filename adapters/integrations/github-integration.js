@@ -23,6 +23,9 @@ import {
   getAssetInfo,
   getDownstreamTable,
   getViewAssetButton,
+  getMDCommentForModel,
+  getMDCommentForMaterialisedView,
+  getTableMD,
 } from "../templates/github-integration.js";
 import { getNewModelAddedComment, getBaseComment } from "../templates/atlan.js";
 import {
@@ -184,6 +187,8 @@ export default class GitHubIntegration extends IntegrationInterface {
     const changedFiles = await this.getChangedFiles({ octokit, context });
     const { pull_request } = context.payload;
     var totalChangedFiles = 0;
+    let tableMd = ``;
+    let setResourceFailed = false;
 
     if (changedFiles.length === 0) return;
 
@@ -247,28 +252,44 @@ export default class GitHubIntegration extends IntegrationInterface {
         },
       });
 
-      const { guid: modelGuid } = asset;
-      const { guid: tableAssetGuid } =
-        asset?.attributes?.dbtModelSqlAssets?.[0];
+      const model = asset;
+      const materialisedView = asset?.attributes?.dbtModelSqlAssets?.[0];
+
+      // const { guid: modelGuid } = asset;
+      // const { guid: tableAssetGuid } =
+      //   asset?.attributes?.dbtModelSqlAssets?.[0];
 
       let PR_TITLE = pull_request.title;
 
       if (downstreamAssets.entityCount != 0) {
-        if (modelGuid)
-          await createResource(
+        if (model) {
+          const { guid: modelGuid } = model;
+          const resp = await createResource(
             modelGuid,
             PR_TITLE,
             pull_request.html_url,
             this.sendSegmentEventOfIntegration
           );
+          const md = getMDCommentForModel(ATLAN_INSTANCE_URL, model);
+          tableMd += getTableMD(md, resp);
+          if (!resp) setResourceFailed = true;
+        }
 
-        if (tableAssetGuid)
-          await createResource(
+        if (materialisedView) {
+          const { guid: tableAssetGuid } = materialisedView;
+          const resp = await createResource(
             tableAssetGuid,
             PR_TITLE,
             pull_request.html_url,
             this.sendSegmentEventOfIntegration
           );
+          const md = getMDCommentForMaterialisedView(
+            ATLAN_INSTANCE_URL,
+            materialisedView
+          );
+          tableMd += getTableMD(md, resp);
+          if (!resp) setResourceFailed = true;
+        }
       }
       totalChangedFiles++;
     }
@@ -276,7 +297,7 @@ export default class GitHubIntegration extends IntegrationInterface {
     const comment = await this.createIssueComment({
       octokit,
       context,
-      content: getSetResourceOnAssetComment(),
+      content: getSetResourceOnAssetComment(tableMd, setResourceFailed),
       comment_id: null,
       forceNewComment: true,
     });
