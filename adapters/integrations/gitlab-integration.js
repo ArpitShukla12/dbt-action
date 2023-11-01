@@ -23,6 +23,9 @@ import {
   getAssetInfo,
   getDownstreamTable,
   getViewAssetButton,
+  getMDCommentForModel,
+  getMDCommentForMaterialisedView,
+  getTableMD,
 } from "../templates/gitlab-integration.js";
 import { getNewModelAddedComment, getBaseComment } from "../templates/atlan.js";
 import {
@@ -220,6 +223,8 @@ export default class GitLabIntegration extends IntegrationInterface {
     const changedFiles = await this.getChangedFiles({ gitlab, diff_refs });
 
     var totalChangedFiles = 0;
+    let tableMd = ``;
+    let setResourceFailed = false;
     if (changedFiles.length === 0) return;
 
     for (const { fileName, filePath, headSHA } of changedFiles) {
@@ -283,26 +288,45 @@ export default class GitLabIntegration extends IntegrationInterface {
         },
       });
 
-      const { guid: modelGuid } = asset;
-      const { guid: tableAssetGuid } =
-        asset?.attributes?.dbtModelSqlAssets?.[0];
+      const model = asset;
+      const materialisedView = asset?.attributes?.dbtModelSqlAssets?.[0];
+
+      // const { guid: modelGuid } = asset;
+      // const { guid: tableAssetGuid } =
+      //   asset?.attributes?.dbtModelSqlAssets?.[0];
 
       var lines = CI_COMMIT_MESSAGE.split("\n");
       var CI_MERGE_REQUEST_TITLE = lines[2];
 
       if (downstreamAssets.entityCount != 0) {
-        await createResource(
-          modelGuid,
-          CI_MERGE_REQUEST_TITLE,
-          web_url,
-          this.sendSegmentEventOfIntegration
-        );
-        await createResource(
-          tableAssetGuid,
-          CI_MERGE_REQUEST_TITLE,
-          web_url,
-          this.sendSegmentEventOfIntegration
-        );
+        if (model) {
+          const { guid: modelGuid } = model;
+          const resp = await createResource(
+            modelGuid,
+            CI_MERGE_REQUEST_TITLE,
+            web_url,
+            this.sendSegmentEventOfIntegration
+          );
+          const md = getMDCommentForModel(ATLAN_INSTANCE_URL, model);
+          tableMd += getTableMD(md, resp);
+          if (!resp) setResourceFailed = true;
+        }
+
+        if (materialisedView) {
+          const { guid: tableAssetGuid } = materialisedView;
+          const resp = await createResource(
+            tableAssetGuid,
+            CI_MERGE_REQUEST_TITLE,
+            web_url,
+            this.sendSegmentEventOfIntegration
+          );
+          const md = getMDCommentForMaterialisedView(
+            ATLAN_INSTANCE_URL,
+            materialisedView
+          );
+          tableMd += getTableMD(md, resp);
+          if (!resp) setResourceFailed = true;
+        }
       }
 
       totalChangedFiles++;
@@ -310,7 +334,7 @@ export default class GitLabIntegration extends IntegrationInterface {
 
     const comment = await this.createIssueComment({
       gitlab,
-      content: getSetResourceOnAssetComment(),
+      content: getSetResourceOnAssetComment(tableMd, setResourceFailed),
       comment_id: null,
       forceNewComment: true,
     });

@@ -25365,10 +25365,15 @@ Make sure your Atlan Instance URL is set in the following format.
 Set your repository action secrets [here](https://github.com/${context.payload.repository.full_name}/settings/secrets/actions). For more information on how to setup the Atlan dbt Action, please read the [setup documentation here](https://github.com/atlanhq/dbt-action/blob/main/README.md).`
 }
 
-function getSetResourceOnAssetComment() {
-    return `🎊 Congrats on the merge!
-
-This pull request has been added as a resource to all the assets modified. ✅`
+function getSetResourceOnAssetComment(tableMd, setResourceFailed) {
+    return `## 🎊 Congrats on the merge!
+  
+    This pull request has been added as a resource to the following assets:
+    Name | Resource set successfully
+    --- | ---
+    ${tableMd}
+    ${setResourceFailed ? '> Seems like we were unable to set the resources for some of the assets due to insufficient permissions. To ensure that the pull request is linked as a resource, you will need to assign the right persona with requisite permissions to the API token.' : ''}
+    `
 }
 
 function getAssetInfo(ATLAN_INSTANCE_URL, asset, materialisedAsset, environmentName, projectName) {
@@ -25424,6 +25429,22 @@ function getViewAssetButton(ATLAN_INSTANCE_URL, asset) {
       )} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${
         asset.guid
       }/overview?utm_source=dbt_github_action)`
+}
+
+function getMDCommentForModel(ATLAN_INSTANCE_URL, model) {
+    return `${getConnectorImage(model?.attributes?.connectorName)} [${
+        model?.displayText
+      }](${ATLAN_INSTANCE_URL}/assets/${model?.guid}/overview?utm_source=dbt_github_action)`
+}
+
+function getMDCommentForMaterialisedView(ATLAN_INSTANCE_URL, materialisedView) {
+    return `${getConnectorImage(materialisedView?.attributes?.connectorName)} [${
+        materialisedView?.attributes?.name
+      }](${ATLAN_INSTANCE_URL}/assets/${materialisedView?.guid}/overview?utm_source=dbt_github_action)`
+}
+
+function getTableMD(md, resp) {
+    return `${md} | ${resp ? '✅' : '❌'} \n`
 }
 ;// CONCATENATED MODULE: ./adapters/integrations/github-integration.js
 // githubIntegration.js
@@ -25589,6 +25610,8 @@ class GitHubIntegration extends IntegrationInterface {
     const changedFiles = await this.getChangedFiles({ octokit, context });
     const { pull_request } = context.payload;
     var totalChangedFiles = 0;
+    let tableMd = ``;
+    let setResourceFailed = false;
 
     if (changedFiles.length === 0) return;
 
@@ -25652,28 +25675,44 @@ class GitHubIntegration extends IntegrationInterface {
         },
       });
 
-      const { guid: modelGuid } = asset;
-      const { guid: tableAssetGuid } =
-        asset?.attributes?.dbtModelSqlAssets?.[0];
+      const model = asset;
+      const materialisedView = asset?.attributes?.dbtModelSqlAssets?.[0];
+
+      // const { guid: modelGuid } = asset;
+      // const { guid: tableAssetGuid } =
+      //   asset?.attributes?.dbtModelSqlAssets?.[0];
 
       let PR_TITLE = pull_request.title;
 
       if (downstreamAssets.entityCount != 0) {
-        if (modelGuid)
-          await createResource(
+        if (model) {
+          const { guid: modelGuid } = model;
+          const resp = await createResource(
             modelGuid,
             PR_TITLE,
             pull_request.html_url,
             this.sendSegmentEventOfIntegration
           );
+          const md = getMDCommentForModel(ATLAN_INSTANCE_URL, model);
+          tableMd += getTableMD(md, resp);
+          if (!resp) setResourceFailed = true;
+        }
 
-        if (tableAssetGuid)
-          await createResource(
+        if (materialisedView) {
+          const { guid: tableAssetGuid } = materialisedView;
+          const resp = await createResource(
             tableAssetGuid,
             PR_TITLE,
             pull_request.html_url,
             this.sendSegmentEventOfIntegration
           );
+          const md = getMDCommentForMaterialisedView(
+            ATLAN_INSTANCE_URL,
+            materialisedView
+          );
+          tableMd += getTableMD(md, resp);
+          if (!resp) setResourceFailed = true;
+        }
       }
       totalChangedFiles++;
     }
@@ -25681,7 +25720,7 @@ class GitHubIntegration extends IntegrationInterface {
     const comment = await this.createIssueComment({
       octokit,
       context,
-      content: getSetResourceOnAssetComment(),
+      content: getSetResourceOnAssetComment(tableMd, setResourceFailed),
       comment_id: null,
       forceNewComment: true,
     });
@@ -33435,29 +33474,33 @@ var {
 
 
 function gitlab_integration_getErrorResponseStatus401 (ATLAN_INSTANCE_URL, CI_PROJECT_NAME, GITLAB_USER_LOGIN) {//Have changed comment make sure to recheck it with team
-    return `We couldn't connect to your Atlan Instance, please make sure to set the valid Atlan Bearer Token as \`ATLAN_API_TOKEN\` as this repository's action secret. 
+    return `We couldn't connect to your Atlan Instance, please make sure to set the valid Atlan Bearer Token as \`ATLAN_API_TOKEN\` as this repository's CI/CD variable. 
 
 Atlan Instance URL: ${ATLAN_INSTANCE_URL}
     
-Set your repository action secrets [here](https://gitlab.com/${GITLAB_USER_LOGIN}/${CI_PROJECT_NAME}/-/settings/ci_cd). For more information on how to setup the Atlan dbt Action, please read the [setup documentation here](https://github.com/atlanhq/dbt-action/blob/main/README.md).`
+Set your CI/CD variables [here](https://gitlab.com/${GITLAB_USER_LOGIN}/${CI_PROJECT_NAME}/-/settings/ci_cd). For more information on how to setup the Atlan dbt Action, please read the [setup documentation here](https://github.com/atlanhq/dbt-action/blob/main/README.md).`
 }
 
 function gitlab_integration_getErrorResponseStatusUndefined(ATLAN_INSTANCE_URL, CI_PROJECT_NAME, GITLAB_USER_LOGIN) {
-    return `We couldn't connect to your Atlan Instance, please make sure to set the valid Atlan Instance URL as \`ATLAN_INSTANCE_URL\` as this repository's action secret. 
+    return `We couldn't connect to your Atlan Instance, please make sure to set the valid Atlan Instance URL as \`ATLAN_INSTANCE_URL\` as this repository's CI/CD variable. 
 
 Atlan Instance URL: ${ATLAN_INSTANCE_URL}
     
 Make sure your Atlan Instance URL is set in the following format.
 \`https://tenant.atlan.com\`
     
-Set your repository action secrets [here](https://gitlab.com/${GITLAB_USER_LOGIN}/${CI_PROJECT_NAME}/-/settings/ci_cd). For more information on how to setup the Atlan dbt Action, please read the [setup documentation here](https://github.com/atlanhq/dbt-action/blob/main/README.md).`
+Set your CI/CD variables [here](https://gitlab.com/${GITLAB_USER_LOGIN}/${CI_PROJECT_NAME}/-/settings/ci_cd). For more information on how to setup the Atlan dbt Action, please read the [setup documentation here](https://github.com/atlanhq/dbt-action/blob/main/README.md).`
 }
 
-function gitlab_integration_getSetResourceOnAssetComment() {
-    return `🎊 Congrats on the merge!
+function gitlab_integration_getSetResourceOnAssetComment(tableMd, setResourceFailed) {
+    return `## 🎊 Congrats on the merge!
   
-This pull request has been added as a resource to all the assets modified. ✅
-`
+    This pull request has been added as a resource to the following assets:
+    Name | Resource set successfully
+    --- | ---
+    ${tableMd}
+    ${setResourceFailed ? '> Seems like we were unable to set the resources for some of the assets due to insufficient permissions. To ensure that the pull request is linked as a resource, you will need to assign the right persona with requisite permissions to the API token.' : ''}
+    `
 }
 
 function gitlab_integration_getAssetInfo(ATLAN_INSTANCE_URL, asset, materialisedAsset, environmentName, projectName) {
@@ -33513,6 +33556,22 @@ function gitlab_integration_getViewAssetButton(ATLAN_INSTANCE_URL, asset) {
     )} [View asset in Atlan](${ATLAN_INSTANCE_URL}/assets/${
       asset.guid
     }/overview?utm_source=dbt_gitlab_action)`
+}
+
+function gitlab_integration_getMDCommentForModel(ATLAN_INSTANCE_URL, model) {
+  return `${getConnectorImage(model?.attributes?.connectorName)} [${
+      model?.displayText
+    }](${ATLAN_INSTANCE_URL}/assets/${model?.guid}/overview?utm_source=dbt_gitlab_action)`
+}
+
+function gitlab_integration_getMDCommentForMaterialisedView(ATLAN_INSTANCE_URL, materialisedView) {
+  return `${getConnectorImage(materialisedView?.attributes?.connectorName)} [${
+      materialisedView?.attributes?.name
+    }](${ATLAN_INSTANCE_URL}/assets/${materialisedView?.guid}/overview?utm_source=dbt_gitlab_action)`
+}
+
+function gitlab_integration_getTableMD(md, resp) {
+  return `${md} | ${resp ? '✅' : '❌'} \n`
 }
 ;// CONCATENATED MODULE: ./adapters/integrations/gitlab-integration.js
 // gitlabIntegration.js
@@ -33706,6 +33765,8 @@ class GitLabIntegration extends IntegrationInterface {
     const changedFiles = await this.getChangedFiles({ gitlab, diff_refs });
 
     var totalChangedFiles = 0;
+    let tableMd = ``;
+    let setResourceFailed = false;
     if (changedFiles.length === 0) return;
 
     for (const { fileName, filePath, headSHA } of changedFiles) {
@@ -33769,26 +33830,45 @@ class GitLabIntegration extends IntegrationInterface {
         },
       });
 
-      const { guid: modelGuid } = asset;
-      const { guid: tableAssetGuid } =
-        asset?.attributes?.dbtModelSqlAssets?.[0];
+      const model = asset;
+      const materialisedView = asset?.attributes?.dbtModelSqlAssets?.[0];
+
+      // const { guid: modelGuid } = asset;
+      // const { guid: tableAssetGuid } =
+      //   asset?.attributes?.dbtModelSqlAssets?.[0];
 
       var lines = CI_COMMIT_MESSAGE.split("\n");
       var CI_MERGE_REQUEST_TITLE = lines[2];
 
       if (downstreamAssets.entityCount != 0) {
-        await createResource(
-          modelGuid,
-          CI_MERGE_REQUEST_TITLE,
-          web_url,
-          this.sendSegmentEventOfIntegration
-        );
-        await createResource(
-          tableAssetGuid,
-          CI_MERGE_REQUEST_TITLE,
-          web_url,
-          this.sendSegmentEventOfIntegration
-        );
+        if (model) {
+          const { guid: modelGuid } = model;
+          const resp = await createResource(
+            modelGuid,
+            CI_MERGE_REQUEST_TITLE,
+            web_url,
+            this.sendSegmentEventOfIntegration
+          );
+          const md = gitlab_integration_getMDCommentForModel(ATLAN_INSTANCE_URL, model);
+          tableMd += gitlab_integration_getTableMD(md, resp);
+          if (!resp) setResourceFailed = true;
+        }
+
+        if (materialisedView) {
+          const { guid: tableAssetGuid } = materialisedView;
+          const resp = await createResource(
+            tableAssetGuid,
+            CI_MERGE_REQUEST_TITLE,
+            web_url,
+            this.sendSegmentEventOfIntegration
+          );
+          const md = gitlab_integration_getMDCommentForMaterialisedView(
+            ATLAN_INSTANCE_URL,
+            materialisedView
+          );
+          tableMd += gitlab_integration_getTableMD(md, resp);
+          if (!resp) setResourceFailed = true;
+        }
       }
 
       totalChangedFiles++;
@@ -33796,7 +33876,7 @@ class GitLabIntegration extends IntegrationInterface {
 
     const comment = await this.createIssueComment({
       gitlab,
-      content: gitlab_integration_getSetResourceOnAssetComment(),
+      content: gitlab_integration_getSetResourceOnAssetComment(tableMd, setResourceFailed),
       comment_id: null,
       forceNewComment: true,
     });
