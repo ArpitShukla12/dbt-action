@@ -25678,10 +25678,6 @@ class GitHubIntegration extends IntegrationInterface {
       const model = asset;
       const materialisedView = asset?.attributes?.dbtModelSqlAssets?.[0];
 
-      // const { guid: modelGuid } = asset;
-      // const { guid: tableAssetGuid } =
-      //   asset?.attributes?.dbtModelSqlAssets?.[0];
-
       let PR_TITLE = pull_request.title;
 
       if (downstreamAssets.entityCount != 0) {
@@ -33832,10 +33828,6 @@ class GitLabIntegration extends IntegrationInterface {
 
       const model = asset;
       const materialisedView = asset?.attributes?.dbtModelSqlAssets?.[0];
-
-      // const { guid: modelGuid } = asset;
-      // const { guid: tableAssetGuid } =
-      //   asset?.attributes?.dbtModelSqlAssets?.[0];
 
       var lines = CI_COMMIT_MESSAGE.split("\n");
       var CI_MERGE_REQUEST_TITLE = lines[2];

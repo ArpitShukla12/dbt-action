@@ -255,10 +255,6 @@ export default class GitHubIntegration extends IntegrationInterface {
       const model = asset;
       const materialisedView = asset?.attributes?.dbtModelSqlAssets?.[0];
 
-      // const { guid: modelGuid } = asset;
-      // const { guid: tableAssetGuid } =
-      //   asset?.attributes?.dbtModelSqlAssets?.[0];
-
       let PR_TITLE = pull_request.title;
 
       if (downstreamAssets.entityCount != 0) {
