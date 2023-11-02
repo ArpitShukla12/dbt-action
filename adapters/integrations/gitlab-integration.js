@@ -713,7 +713,7 @@ ${content}`;
             }
           } catch (e) {
             logger.withError(
-              `Error processing file: ${filename} - ${e.message}`,
+              `Error processing file`,
               integrationName,
               CI_COMMIT_SHA,
               "getChangedFiles"
