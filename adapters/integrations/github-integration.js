@@ -44,7 +44,7 @@ export default class GitHubIntegration extends IntegrationInterface {
 
     const timeStart = Date.now();
     const { context } = github;
-    console.log(context.sha);
+    console.log(context);
     const octokit = github.getOctokit(this.token);
     const { pull_request } = context?.payload;
     const { state, merged } = pull_request;
