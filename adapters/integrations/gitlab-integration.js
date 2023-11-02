@@ -40,6 +40,7 @@ import {
   CI_PROJECT_NAME,
   CI_COMMIT_SHA,
   getCIMergeRequestIID,
+  CI_PROJECT_NAMESPACE,
 } from "../utils/get-environment-variables.js";
 import logger from "../logger/logger.js";
 const integrationName = "gitlab";
@@ -542,7 +543,7 @@ export default class GitLabIntegration extends IntegrationInterface {
           content: getErrorResponseStatus401(
             ATLAN_INSTANCE_URL,
             CI_PROJECT_NAME,
-            GITLAB_USER_LOGIN
+            CI_PROJECT_NAMESPACE
           ),
           comment_id: existingComment?.id,
         });
@@ -561,7 +562,7 @@ export default class GitLabIntegration extends IntegrationInterface {
           content: getErrorResponseStatusUndefined(
             ATLAN_INSTANCE_URL,
             CI_PROJECT_NAME,
-            GITLAB_USER_LOGIN
+            CI_PROJECT_NAMESPACE
           ),
           comment_id: existingComment?.id,
         });

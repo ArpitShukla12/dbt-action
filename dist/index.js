@@ -24823,6 +24823,7 @@ const {
   GITLAB_USER_LOGIN,
   CI_PROJECT_NAME,
   CI_COMMIT_SHA,
+  CI_PROJECT_NAMESPACE,
 } = process.env;
 
 function getGitLabEnvironments() {
@@ -33930,15 +33931,15 @@ var {
 ;// CONCATENATED MODULE: ./adapters/templates/gitlab-integration.js
 
 
-function gitlab_integration_getErrorResponseStatus401 (ATLAN_INSTANCE_URL, CI_PROJECT_NAME, GITLAB_USER_LOGIN) {//Have changed comment make sure to recheck it with team
+function gitlab_integration_getErrorResponseStatus401 (ATLAN_INSTANCE_URL, CI_PROJECT_NAME, CI_PROJECT_NAMESPACE) {
     return `We couldn't connect to your Atlan Instance, please make sure to set the valid Atlan Bearer Token as \`ATLAN_API_TOKEN\` as this repository's CI/CD variable. 
 
 Atlan Instance URL: ${ATLAN_INSTANCE_URL}
     
-Set your CI/CD variables [here](https://gitlab.com/${GITLAB_USER_LOGIN}/${CI_PROJECT_NAME}/-/settings/ci_cd). For more information on how to setup the Atlan dbt Action, please read the [setup documentation here](https://github.com/atlanhq/dbt-action/blob/main/README.md).`
+Set your CI/CD variables [here](https://gitlab.com/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/-/settings/ci_cd). For more information on how to setup the Atlan dbt Action, please read the [setup documentation here](https://github.com/atlanhq/dbt-action/blob/main/README.md).`
 }
 
-function gitlab_integration_getErrorResponseStatusUndefined(ATLAN_INSTANCE_URL, CI_PROJECT_NAME, GITLAB_USER_LOGIN) {
+function gitlab_integration_getErrorResponseStatusUndefined(ATLAN_INSTANCE_URL, CI_PROJECT_NAME, CI_PROJECT_NAMESPACE) {
     return `We couldn't connect to your Atlan Instance, please make sure to set the valid Atlan Instance URL as \`ATLAN_INSTANCE_URL\` as this repository's CI/CD variable. 
 
 Atlan Instance URL: ${ATLAN_INSTANCE_URL}
@@ -33946,7 +33947,7 @@ Atlan Instance URL: ${ATLAN_INSTANCE_URL}
 Make sure your Atlan Instance URL is set in the following format.
 \`https://tenant.atlan.com\`
     
-Set your CI/CD variables [here](https://gitlab.com/${GITLAB_USER_LOGIN}/${CI_PROJECT_NAME}/-/settings/ci_cd). For more information on how to setup the Atlan dbt Action, please read the [setup documentation here](https://github.com/atlanhq/dbt-action/blob/main/README.md).`
+Set your CI/CD variables [here](https://gitlab.com/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/-/settings/ci_cd). For more information on how to setup the Atlan dbt Action, please read the [setup documentation here](https://github.com/atlanhq/dbt-action/blob/main/README.md).`
 }
 
 function gitlab_integration_getSetResourceOnAssetComment(tableMd, setResourceFailed) {
@@ -34041,7 +34042,7 @@ function gitlab_integration_getTableMD(md, resp) {
 
 
 
-
+const gitlab_integration_integrationName = "gitlab";
 var CI_MERGE_REQUEST_IID;
 
 class GitLabIntegration extends IntegrationInterface {
@@ -34050,357 +34051,538 @@ class GitLabIntegration extends IntegrationInterface {
   }
 
   async run() {
-    logger_logger.logInfo("Starting the GitLab integration...");
-
-    const timeStart = Date.now();
-    const gitlab = new dist_Gitlab({
-      host: "https://gitlab.com",
-      token: this.token,
-    });
-
-    CI_MERGE_REQUEST_IID = await getCIMergeRequestIID(
-      gitlab,
-      CI_PROJECT_ID,
-      CI_COMMIT_SHA
-    );
-
-    var mergeRequestCommit = await gitlab.Commits.allMergeRequests(
-      CI_PROJECT_ID,
-      CI_COMMIT_SHA
-    );
-
-    if (!(await this.authIntegration({ gitlab }))) {
-      logger_logger.logError("Authentication failed. Wrong API Token.");
-      throw { message: "Wrong API Token" };
-    }
-
-    let total_assets = 0;
-
-    if (mergeRequestCommit.length && mergeRequestCommit[0]?.state == "merged") {
-      const { web_url, target_branch, diff_refs } =
-        await gitlab.MergeRequests.show(
-          CI_PROJECT_PATH,
-          mergeRequestCommit[0]?.iid
-        );
-      total_assets = await this.setResourceOnAsset({
-        gitlab,
-        web_url,
-        target_branch,
-        diff_refs,
+    try {
+      const timeStart = Date.now();
+      const gitlab = new dist_Gitlab({
+        host: "https://gitlab.com",
+        token: this.token,
       });
-    } else {
-      const { target_branch, diff_refs } = await gitlab.MergeRequests.show(
-        CI_PROJECT_PATH,
-        CI_MERGE_REQUEST_IID
+
+      CI_MERGE_REQUEST_IID = await getCIMergeRequestIID(
+        gitlab,
+        CI_PROJECT_ID,
+        CI_COMMIT_SHA
       );
 
-      total_assets = await this.printDownstreamAssets({
-        gitlab,
-        target_branch,
-        diff_refs,
-      });
+      var mergeRequestCommit = await gitlab.Commits.allMergeRequests(
+        CI_PROJECT_ID,
+        CI_COMMIT_SHA
+      );
+
+      logger_logger.withInfo(
+        "GitLab Integration is running...",
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "run"
+      );
+
+      if (!(await this.authIntegration({ gitlab }))) {
+        logger_logger.withError(
+          "Authentication failed. Wrong API Token.",
+          gitlab_integration_integrationName,
+          CI_COMMIT_SHA,
+          "run"
+        );
+        throw { message: "Wrong API Token" };
+      }
+
+      let total_assets = 0;
+
+      if (
+        mergeRequestCommit.length &&
+        mergeRequestCommit[0]?.state == "merged"
+      ) {
+        const { web_url, target_branch, diff_refs } =
+          await gitlab.MergeRequests.show(
+            CI_PROJECT_PATH,
+            mergeRequestCommit[0]?.iid
+          );
+        total_assets = await this.setResourceOnAsset({
+          gitlab,
+          web_url,
+          target_branch,
+          diff_refs,
+        });
+      } else {
+        const { target_branch, diff_refs } = await gitlab.MergeRequests.show(
+          CI_PROJECT_PATH,
+          CI_MERGE_REQUEST_IID
+        );
+
+        total_assets = await this.printDownstreamAssets({
+          gitlab,
+          target_branch,
+          diff_refs,
+        });
+      }
+
+      if (total_assets !== 0)
+        this.sendSegmentEventOfIntegration({
+          action: "dbt_ci_action_run",
+          properties: {
+            asset_count: total_assets,
+            total_time: Date.now() - timeStart,
+          },
+        });
+
+      logger_logger.withInfo(
+        "Successfully Completed DBT_CI_PIPELINE",
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "run"
+      );
+    } catch (error) {
+      logger_logger.withError(
+        `Error in run(): ${error.message}`,
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "run"
+      );
+      throw error;
     }
-
-    if (total_assets !== 0)
-      this.sendSegmentEventOfIntegration({
-        action: "dbt_ci_action_run",
-        properties: {
-          asset_count: total_assets,
-          total_time: Date.now() - timeStart,
-        },
-      });
-
-    logger_logger.logInfo("Successfully Completed DBT_CI_PIPELINE");
   }
 
   async printDownstreamAssets({ gitlab, target_branch, diff_refs }) {
-    logger_logger.logInfo("Printing downstream assets...");
+    logger_logger.withInfo(
+      "Printing downstream assets...",
+      gitlab_integration_integrationName,
+      CI_COMMIT_SHA,
+      "printDownstreamAssets"
+    );
 
-    const changedFiles = await this.getChangedFiles({ gitlab, diff_refs });
+    try {
+      const changedFiles = await this.getChangedFiles({ gitlab, diff_refs });
 
-    let comments = ``;
-    let totalChangedFiles = 0;
+      let comments = ``;
+      let totalChangedFiles = 0;
 
-    for (const { fileName, filePath, headSHA, status } of changedFiles) {
-      const aliasName = await this.getAssetName({
-        gitlab,
-        fileName,
-        filePath,
-        headSHA,
-      });
-      const assetName = IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
+      for (const { fileName, filePath, headSHA, status } of changedFiles) {
+        logger_logger.withInfo(
+          `Processing file: ${fileName}`,
+          gitlab_integration_integrationName,
+          CI_COMMIT_SHA,
+          "printDownstreamAssets"
+        );
+        const aliasName = await this.getAssetName({
+          gitlab,
+          fileName,
+          filePath,
+          headSHA,
+        });
+        const assetName = IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
 
-      const environments = getGitLabEnvironments();
-      let environment = null;
-      for (const baseBranchName of Object.keys(environments)) {
-        const environmentName = environments[baseBranchName];
-        if (baseBranchName === target_branch) {
-          environment = environmentName;
-          break;
+        const environments = getGitLabEnvironments();
+        let environment = null;
+        for (const baseBranchName of Object.keys(environments)) {
+          const environmentName = environments[baseBranchName];
+          if (baseBranchName === target_branch) {
+            environment = environmentName;
+            break;
+          }
         }
-      }
 
-      logger_logger.logDebug(`Processing asset: ${assetName}`);
+        logger_logger.withInfo(
+          `Processing asset: ${assetName} in environment: ${environment}`,
+          gitlab_integration_integrationName,
+          CI_COMMIT_SHA,
+          "printDownstreamAssets"
+        );
 
-      const asset = await getAsset({
-        name: assetName,
-        sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
-        environment: environment,
-        integration: "gitlab",
-      });
+        const asset = await getAsset({
+          name: assetName,
+          sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
+          environment: environment,
+          integration: "gitlab",
+        });
 
-      if (totalChangedFiles !== 0) comments += "\n\n---\n\n";
+        if (totalChangedFiles !== 0) comments += "\n\n---\n\n";
 
-      if (status === "added") {
-        comments += getNewModelAddedComment(fileName);
+        if (status === "added") {
+          logger_logger.withInfo(
+            `New model added: ${fileName}`,
+            gitlab_integration_integrationName,
+            CI_COMMIT_SHA,
+            "printDownstreamAssets"
+          );
+          comments += getNewModelAddedComment(fileName);
+          totalChangedFiles++;
+          continue;
+        }
+
+        if (asset.error) {
+          logger_logger.withError(
+            `Asset error for ${assetName}: ${asset.error}`,
+            gitlab_integration_integrationName,
+            CI_COMMIT_SHA,
+            "printDownstreamAssets"
+          );
+          comments += asset.error;
+          totalChangedFiles++;
+          continue;
+        }
+
+        const materialisedAsset = asset?.attributes?.dbtModelSqlAssets?.[0];
+        const timeStart = Date.now();
+
+        const totalModifiedFiles = changedFiles.filter(
+          (i) => i.status === "modified"
+        ).length;
+
+        const { guid } = asset;
+
+        const downstreamAssets = await getDownstreamAssets(
+          asset,
+          materialisedAsset.guid,
+          totalModifiedFiles,
+          this.sendSegmentEventOfIntegration,
+          "gitlab"
+        );
+
+        if (downstreamAssets.error) {
+          logger_logger.withError(
+            `Downstream assets error for ${assetName}: ${downstreamAssets.error}`,
+            gitlab_integration_integrationName,
+            CI_COMMIT_SHA,
+            "printDownstreamAssets"
+          );
+          comments += downstreamAssets.error;
+          totalChangedFiles++;
+          continue;
+        }
+
+        this.sendSegmentEventOfIntegration({
+          action: "dbt_ci_action_downstream_unfurl",
+          properties: {
+            asset_guid: asset.guid,
+            asset_type: asset.typeName,
+            downstream_count: downstreamAssets.entities.length,
+            total_fetch_time: Date.now() - timeStart,
+          },
+        });
+
+        const classifications = await getClassifications({
+          sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
+        });
+
+        const comment = await this.renderDownstreamAssetsComment({
+          asset,
+          downstreamAssets,
+          classifications,
+          materialisedAsset,
+        });
+
+        comments += comment;
+
         totalChangedFiles++;
-        continue;
       }
 
-      if (asset.error) {
-        logger_logger.logError(`Asset error: ${asset.error}`);
-        comments += asset.error;
-        totalChangedFiles++;
-        continue;
-      }
+      comments = getBaseComment(totalChangedFiles, comments);
 
-      const materialisedAsset = asset?.attributes?.dbtModelSqlAssets?.[0];
-      const timeStart = Date.now();
+      const existingComment = await this.checkCommentExists({ gitlab });
 
-      const totalModifiedFiles = changedFiles.filter(
-        (i) => i.status === "modified"
-      ).length;
-
-      const { guid } = asset;
-
-      const downstreamAssets = await getDownstreamAssets(
-        asset,
-        materialisedAsset.guid,
-        totalModifiedFiles,
-        this.sendSegmentEventOfIntegration,
-        "gitlab"
+      logger_logger.withInfo(
+        `Existing Comment: ${existingComment?.id}`,
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "printDownstreamAssets"
       );
 
-      if (downstreamAssets.error) {
-        logger_logger.logError(`Downstream assets error: ${downstreamAssets.error}`);
-        comments += downstreamAssets.error;
-        totalChangedFiles++;
-        continue;
-      }
+      if (totalChangedFiles > 0)
+        await this.createIssueComment({
+          gitlab,
+          content: comments,
+          comment_id: existingComment?.id,
+        });
 
-      this.sendSegmentEventOfIntegration({
-        action: "dbt_ci_action_downstream_unfurl",
-        properties: {
-          asset_guid: asset.guid,
-          asset_type: asset.typeName,
-          downstream_count: downstreamAssets.entities.length,
-          total_fetch_time: Date.now() - timeStart,
-        },
-      });
+      if (totalChangedFiles === 0 && existingComment)
+        await this.deleteComment({ gitlab, comment_id: existingComment?.id });
 
-      const classifications = await getClassifications({
-        sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
-      });
+      logger_logger.withInfo(
+        "Successfully printed Downstream Assets",
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "printDownstreamAssets"
+      );
 
-      const comment = await this.renderDownstreamAssetsComment({
-        asset,
-        downstreamAssets,
-        classifications,
-        materialisedAsset,
-      });
-
-      comments += comment;
-
-      totalChangedFiles++;
+      return totalChangedFiles;
+    } catch (error) {
+      logger_logger.withError(
+        `Error in printDownstreamAssets: ${error.message}`,
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "printDownstreamAssets"
+      );
+      throw error;
     }
-
-    comments = getBaseComment(totalChangedFiles, comments);
-
-    const existingComment = await this.checkCommentExists({ gitlab });
-
-    logger_logger.logDebug(`Existing Comment: ${existingComment?.id}`);
-
-    if (totalChangedFiles > 0)
-      await this.createIssueComment({
-        gitlab,
-        content: comments,
-        comment_id: existingComment?.id,
-      });
-
-    if (totalChangedFiles === 0 && existingComment)
-      await this.deleteComment({ gitlab, comment_id: existingComment?.id });
-
-    logger_logger.logInfo("Successfully printed Downstream Assets");
-
-    return totalChangedFiles;
   }
 
   async setResourceOnAsset({ gitlab, web_url, target_branch, diff_refs }) {
-    logger_logger.logInfo("Setting resources on assets...");
+    logger_logger.withInfo(
+      "Setting resources on assets...",
+      gitlab_integration_integrationName,
+      CI_COMMIT_SHA,
+      "setResourceOnAsset"
+    );
 
-    const changedFiles = await this.getChangedFiles({ gitlab, diff_refs });
+    try {
+      const changedFiles = await this.getChangedFiles({ gitlab, diff_refs });
 
-    var totalChangedFiles = 0;
-    let tableMd = ``;
-    let setResourceFailed = false;
-    if (changedFiles.length === 0) return;
+      var totalChangedFiles = 0;
+      let tableMd = ``;
+      let setResourceFailed = false;
+      if (changedFiles.length === 0) {
+        logger_logger.withInfo(
+          "No changed files found. Skipping resource setup.",
+          gitlab_integration_integrationName,
+          CI_COMMIT_SHA,
+          "setResourceOnAsset"
+        );
+        return totalChangedFiles;
+      }
 
-    for (const { fileName, filePath, headSHA } of changedFiles) {
-      const aliasName = await this.getAssetName({
-        gitlab,
-        fileName,
-        filePath,
-        headSHA,
-      });
+      for (const { fileName, filePath, headSHA } of changedFiles) {
+        const aliasName = await this.getAssetName({
+          gitlab,
+          fileName,
+          filePath,
+          headSHA,
+        });
 
-      const assetName = IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
+        const assetName = IGNORE_MODEL_ALIAS_MATCHING ? fileName : aliasName;
 
-      const environments = getGitLabEnvironments();
-      let environment = null;
-      for (const baseBranchName of Object.keys(environments)) {
-        const environmentName = environments[baseBranchName];
-        if (baseBranchName === target_branch) {
-          environment = environmentName;
-          break;
+        logger_logger.withInfo(
+          `Resolved asset name: ${assetName}`,
+          gitlab_integration_integrationName,
+          CI_COMMIT_SHA,
+          "setResourceOnAsset"
+        );
+
+        const environments = getGitLabEnvironments();
+        let environment = null;
+        for (const baseBranchName of Object.keys(environments)) {
+          const environmentName = environments[baseBranchName];
+          if (baseBranchName === target_branch) {
+            environment = environmentName;
+            break;
+          }
         }
+
+        logger_logger.withInfo(
+          `Processing asset: ${assetName} in environment: ${environment}`,
+          gitlab_integration_integrationName,
+          CI_COMMIT_SHA,
+          "setResourceOnAsset"
+        );
+
+        const asset = await getAsset({
+          name: assetName,
+          sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
+          environment: environment,
+          integration: "gitlab",
+        });
+
+        if (asset.error) {
+          logger_logger.withError(
+            `Failed to retrieve asset: ${assetName}, Error: ${asset.error}`,
+            gitlab_integration_integrationName,
+            CI_COMMIT_SHA,
+            "setResourceOnAsset"
+          );
+          continue;
+        }
+
+        const materialisedAsset = asset?.attributes?.dbtModelSqlAssets?.[0];
+        const timeStart = Date.now();
+
+        const totalModifiedFiles = changedFiles.filter(
+          (i) => i.status === "modified"
+        ).length;
+
+        const { guid } = asset;
+
+        const downstreamAssets = await getDownstreamAssets(
+          asset,
+          materialisedAsset.guid,
+          totalModifiedFiles,
+          this.sendSegmentEventOfIntegration,
+          "gitlab"
+        );
+
+        if (downstreamAssets.error) {
+          logger_logger.withError(
+            `Failed to retrieve downstream assets for: ${assetName}, Error: ${downstreamAssets.error}`,
+            gitlab_integration_integrationName,
+            CI_COMMIT_SHA,
+            "setResourceOnAsset"
+          );
+          continue;
+        }
+
+        this.sendSegmentEventOfIntegration({
+          action: "dbt_ci_action_downstream_unfurl",
+          properties: {
+            asset_guid: asset.guid,
+            asset_type: asset.typeName,
+            downstream_count: downstreamAssets.entities.length,
+            total_fetch_time: Date.now() - timeStart,
+          },
+        });
+
+        const model = asset;
+        const materialisedView = asset?.attributes?.dbtModelSqlAssets?.[0];
+
+        var lines = CI_COMMIT_MESSAGE.split("\n");
+        var CI_MERGE_REQUEST_TITLE = lines[2];
+
+        if (downstreamAssets.entityCount != 0) {
+          if (model) {
+            const { guid: modelGuid } = model;
+            const resp = await createResource(
+              modelGuid,
+              CI_MERGE_REQUEST_TITLE,
+              web_url,
+              this.sendSegmentEventOfIntegration
+            );
+            const md = gitlab_integration_getMDCommentForModel(ATLAN_INSTANCE_URL, model);
+            tableMd += gitlab_integration_getTableMD(md, resp);
+            if (!resp) {
+              setResourceFailed = true;
+              logger_logger.withError(
+                `Setting resource failed for model: ${modelGuid}`,
+                gitlab_integration_integrationName,
+                CI_COMMIT_SHA,
+                "setResourceOnAsset"
+              );
+            }
+          }
+
+          if (materialisedView) {
+            const { guid: tableAssetGuid } = materialisedView;
+            const resp = await createResource(
+              tableAssetGuid,
+              CI_MERGE_REQUEST_TITLE,
+              web_url,
+              this.sendSegmentEventOfIntegration
+            );
+            const md = gitlab_integration_getMDCommentForMaterialisedView(
+              ATLAN_INSTANCE_URL,
+              materialisedView
+            );
+            tableMd += gitlab_integration_getTableMD(md, resp);
+            if (!resp) {
+              setResourceFailed = true;
+              logger_logger.withError(
+                `Setting resource failed for materialized view: ${tableAssetGuid}`,
+                gitlab_integration_integrationName,
+                CI_COMMIT_SHA,
+                "setResourceOnAsset"
+              );
+            }
+          }
+        }
+
+        totalChangedFiles++;
       }
 
-      logger_logger.logDebug(`Processing asset: ${assetName}`);
-
-      const asset = await getAsset({
-        name: assetName,
-        sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
-        environment: environment,
-        integration: "gitlab",
+      const comment = await this.createIssueComment({
+        gitlab,
+        content: gitlab_integration_getSetResourceOnAssetComment(tableMd, setResourceFailed),
+        comment_id: null,
+        forceNewComment: true,
       });
 
-      if (asset.error) {
-        logger_logger.logError(`Asset error: ${asset.error}`);
-        continue;
-      }
-
-      const materialisedAsset = asset?.attributes?.dbtModelSqlAssets?.[0];
-      const timeStart = Date.now();
-
-      const totalModifiedFiles = changedFiles.filter(
-        (i) => i.status === "modified"
-      ).length;
-
-      const { guid } = asset;
-
-      const downstreamAssets = await getDownstreamAssets(
-        asset,
-        materialisedAsset.guid,
-        totalModifiedFiles,
-        this.sendSegmentEventOfIntegration,
-        "gitlab"
+      logger_logger.withInfo(
+        "Successfully set the resource on the asset",
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "setResourceOnAsset"
       );
 
-      if (downstreamAssets.error) {
-        logger_logger.logError(`Downstream assets error: ${downstreamAssets.error}`);
-        continue;
-      }
-
-      this.sendSegmentEventOfIntegration({
-        action: "dbt_ci_action_downstream_unfurl",
-        properties: {
-          asset_guid: asset.guid,
-          asset_type: asset.typeName,
-          downstream_count: downstreamAssets.entities.length,
-          total_fetch_time: Date.now() - timeStart,
-        },
-      });
-
-      const model = asset;
-      const materialisedView = asset?.attributes?.dbtModelSqlAssets?.[0];
-
-      var lines = CI_COMMIT_MESSAGE.split("\n");
-      var CI_MERGE_REQUEST_TITLE = lines[2];
-
-      if (downstreamAssets.entityCount != 0) {
-        if (model) {
-          const { guid: modelGuid } = model;
-          const resp = await createResource(
-            modelGuid,
-            CI_MERGE_REQUEST_TITLE,
-            web_url,
-            this.sendSegmentEventOfIntegration
-          );
-          const md = gitlab_integration_getMDCommentForModel(ATLAN_INSTANCE_URL, model);
-          tableMd += gitlab_integration_getTableMD(md, resp);
-          if (!resp) setResourceFailed = true;
-        }
-
-        if (materialisedView) {
-          const { guid: tableAssetGuid } = materialisedView;
-          const resp = await createResource(
-            tableAssetGuid,
-            CI_MERGE_REQUEST_TITLE,
-            web_url,
-            this.sendSegmentEventOfIntegration
-          );
-          const md = gitlab_integration_getMDCommentForMaterialisedView(
-            ATLAN_INSTANCE_URL,
-            materialisedView
-          );
-          tableMd += gitlab_integration_getTableMD(md, resp);
-          if (!resp) setResourceFailed = true;
-        }
-      }
-
-      totalChangedFiles++;
+      return totalChangedFiles;
+    } catch (error) {
+      logger_logger.withError(
+        `Error in setResourceOnAsset: ${error}`,
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "setResourceOnAsset"
+      );
+      throw error;
     }
-
-    const comment = await this.createIssueComment({
-      gitlab,
-      content: gitlab_integration_getSetResourceOnAssetComment(tableMd, setResourceFailed),
-      comment_id: null,
-      forceNewComment: true,
-    });
-
-    logger_logger.logInfo("Successfully set the resource on the asset");
-
-    return totalChangedFiles;
   }
 
   async authIntegration({ gitlab }) {
-    logger_logger.logInfo("Authenticating with atlan....");
+    logger_logger.withInfo(
+      "Authenticating with Atlan",
+      gitlab_integration_integrationName,
+      CI_COMMIT_SHA,
+      "authIntegration"
+    );
 
-    const response = await auth();
+    try {
+      const response = await auth();
 
-    const existingComment = await this.checkCommentExists({ gitlab });
+      const existingComment = await this.checkCommentExists({ gitlab });
 
-    logger_logger.logDebug(`Existing Comment: ${existingComment?.id}`);
+      logger_logger.withInfo(
+        `Existing Comment: ${existingComment?.id}`,
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "authIntegration"
+      );
 
-    if (response?.status === 401) {
-      logger_logger.logError("Authentication failed: Status 401");
-      await this.createIssueComment({
-        gitlab,
-        content: gitlab_integration_getErrorResponseStatus401(
-          ATLAN_INSTANCE_URL,
-          CI_PROJECT_NAME,
-          GITLAB_USER_LOGIN
-        ),
-        comment_id: existingComment?.id,
-      });
-      return false;
+      if (response?.status === 401) {
+        logger_logger.withError(
+          "Authentication failed: Status 401",
+          gitlab_integration_integrationName,
+          CI_COMMIT_SHA,
+          "authIntegration"
+        );
+        await this.createIssueComment({
+          gitlab,
+          content: gitlab_integration_getErrorResponseStatus401(
+            ATLAN_INSTANCE_URL,
+            CI_PROJECT_NAME,
+            CI_PROJECT_NAMESPACE
+          ),
+          comment_id: existingComment?.id,
+        });
+        return false;
+      }
+
+      if (response === undefined) {
+        logger_logger.withError(
+          "Authentication failed: Undefined response",
+          gitlab_integration_integrationName,
+          CI_COMMIT_SHA,
+          "authIntegration"
+        );
+        await this.createIssueComment({
+          gitlab,
+          content: gitlab_integration_getErrorResponseStatusUndefined(
+            ATLAN_INSTANCE_URL,
+            CI_PROJECT_NAME,
+            CI_PROJECT_NAMESPACE
+          ),
+          comment_id: existingComment?.id,
+        });
+        return false;
+      }
+      logger_logger.withInfo(
+        "Successfully Authenticated with Atlan",
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "authIntegration"
+      );
+      return true;
+    } catch (error) {
+      logger_logger.withError(
+        `Error in authIntegration: ${error.message}`,
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "authIntegration"
+      );
+      throw error;
     }
-
-    if (response === undefined) {
-      logger_logger.logError("Authentication failed: Undefined response");
-      await this.createIssueComment({
-        gitlab,
-        content: gitlab_integration_getErrorResponseStatusUndefined(
-          ATLAN_INSTANCE_URL,
-          CI_PROJECT_NAME,
-          GITLAB_USER_LOGIN
-        ),
-        comment_id: existingComment?.id,
-      });
-      return false;
-    }
-    logger_logger.logInfo("Successfully Authenticated with Atlan");
-    return true;
   }
 
   async createIssueComment({
@@ -34409,12 +34591,25 @@ class GitLabIntegration extends IntegrationInterface {
     comment_id = null,
     forceNewComment = false,
   }) {
-    logger_logger.logInfo("Creating an issue comment...");
+    logger_logger.withInfo(
+      "Creating an issue comment...",
+      gitlab_integration_integrationName,
+      CI_COMMIT_SHA,
+      "createIssueComment"
+    );
 
     content = `<!-- ActionCommentIdentifier: atlan-dbt-action -->
 ${content}`;
 
-    if (IS_DEV) return content;
+    if (IS_DEV) {
+      logger_logger.withInfo(
+        "Development mode enabled. Skipping comment creation.",
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "createIssueComment"
+      );
+      return content;
+    }
 
     if (comment_id && !forceNewComment) {
       return await gitlab.MergeRequestNotes.edit(
@@ -34434,144 +34629,277 @@ ${content}`;
   }
 
   async sendSegmentEventOfIntegration({ action, properties }) {
-    const domain = new URL(ATLAN_INSTANCE_URL).hostname;
+    try {
+      const domain = new URL(ATLAN_INSTANCE_URL).hostname;
+      logger_logger.withInfo(
+        `Sending Segment event for action: ${action}`,
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "sendSegmentEventOfIntegration"
+      );
 
-    const raw = stringify({
-      category: "integration",
-      object: "gitlab",
-      action,
-      userId: "atlan-annonymous-github",
-      properties: {
-        ...properties,
-        gitlab_job_id: CI_JOB_URL,
-        domain,
-      },
-    });
+      const raw = stringify({
+        category: "integration",
+        object: "gitlab",
+        action,
+        userId: "atlan-annonymous-github",
+        properties: {
+          ...properties,
+          gitlab_job_id: CI_JOB_URL,
+          domain,
+        },
+      });
 
-    return sendSegmentEvent(action, raw);
+      return sendSegmentEvent(action, raw);
+    } catch (error) {
+      logger_logger.withError(
+        `Error sending Segment event for action: ${action} - ${error.message}`,
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "sendSegmentEventOfIntegration"
+      );
+      throw error;
+    }
   }
 
   async getChangedFiles({ gitlab, diff_refs }) {
-    logger_logger.logInfo("Fetching changed files...");
-
-    var changes = await gitlab.MergeRequests.allDiffs(
-      CI_PROJECT_PATH,
-      CI_MERGE_REQUEST_IID
-    );
-
-    var changedFiles = changes
-      .map(({ new_path, old_path, new_file }) => {
-        try {
-          const [modelName] = new_path
-            .match(/.*models\/(.*)\.sql/)[1]
-            .split("/")
-            .reverse()[0]
-            .split(".");
-
-          if (modelName) {
-            if (new_file) {
-              return {
-                fileName: modelName,
-                filePath: new_path,
-                headSHA: diff_refs.head_sha,
-                status: "added",
-              };
-            } else if (new_path !== old_path) {
-              // File is renamed or moved
-              return {
-                fileName: modelName,
-                filePath: new_path,
-                headSHA: diff_refs.head_sha,
-                status: "renamed_or_moved",
-              };
-            } else {
-              // File is modified
-              return {
-                fileName: modelName,
-                filePath: new_path,
-                headSHA: diff_refs.head_sha,
-                status: "modified",
-              };
-            }
-          }
-        } catch (e) {}
-      })
-      .filter((i) => i !== undefined);
-
-    changedFiles = changedFiles.filter((item, index) => {
-      return (
-        changedFiles.findIndex((obj) => obj.fileName === item.fileName) ===
-        index
+    try {
+      logger_logger.withInfo(
+        "Fetching changed files...",
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "getChangedFiles"
       );
-    });
 
-    logger_logger.logInfo("Successfully fetched changed files");
+      var changes = await gitlab.MergeRequests.allDiffs(
+        CI_PROJECT_PATH,
+        CI_MERGE_REQUEST_IID
+      );
 
-    return changedFiles;
+      var changedFiles = changes
+        .map(({ new_path, old_path, new_file }) => {
+          try {
+            const [modelName] = new_path
+              .match(/.*models\/(.*)\.sql/)[1]
+              .split("/")
+              .reverse()[0]
+              .split(".");
+
+            if (modelName) {
+              if (new_file) {
+                return {
+                  fileName: modelName,
+                  filePath: new_path,
+                  headSHA: diff_refs.head_sha,
+                  status: "added",
+                };
+              } else if (new_path !== old_path) {
+                // File is renamed or moved
+                return {
+                  fileName: modelName,
+                  filePath: new_path,
+                  headSHA: diff_refs.head_sha,
+                  status: "renamed_or_moved",
+                };
+              } else {
+                // File is modified
+                return {
+                  fileName: modelName,
+                  filePath: new_path,
+                  headSHA: diff_refs.head_sha,
+                  status: "modified",
+                };
+              }
+            }
+          } catch (e) {
+            logger_logger.withError(
+              `Error processing file`,
+              gitlab_integration_integrationName,
+              CI_COMMIT_SHA,
+              "getChangedFiles"
+            );
+          }
+        })
+        .filter((i) => i !== undefined);
+
+      changedFiles = changedFiles.filter((item, index) => {
+        return (
+          changedFiles.findIndex((obj) => obj.fileName === item.fileName) ===
+          index
+        );
+      });
+
+      logger_logger.withInfo(
+        "Successfully fetched changed files",
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "getChangedFiles"
+      );
+
+      return changedFiles;
+    } catch (error) {
+      logger_logger.withError(
+        `Error fetching changed files - ${error.message}`,
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "getChangedFiles"
+      );
+      throw error;
+    }
   }
 
   async getAssetName({ gitlab, fileName, filePath, headSHA }) {
-    logger_logger.logInfo("Getting asset name...");
+    try {
+      logger_logger.withInfo(
+        "Getting asset name...",
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "getAssetName"
+      );
 
-    var regExp =
-      /{{\s*config\s*\(\s*(?:[^,]*,)*\s*alias\s*=\s*['"]([^'"]+)['"](?:\s*,[^,]*)*\s*\)\s*}}/im;
-    var fileContents = await this.getFileContents({
-      gitlab,
-      filePath,
-      headSHA,
-    });
+      var regExp =
+        /{{\s*config\s*\(\s*(?:[^,]*,)*\s*alias\s*=\s*['"]([^'"]+)['"](?:\s*,[^,]*)*\s*\)\s*}}/im;
+      var fileContents = await this.getFileContents({
+        gitlab,
+        filePath,
+        headSHA,
+      });
 
-    if (fileContents) {
-      var matches = regExp.exec(fileContents);
-      if (matches) {
-        logger_logger.logDebug(`Matched alias name: ${matches[1].trim()}`);
-        return matches[1].trim();
+      if (fileContents) {
+        var matches = regExp.exec(fileContents);
+        if (matches) {
+          logger_logger.withInfo(
+            `Found a match: ${matches[1].trim()}`,
+            gitlab_integration_integrationName,
+            CI_COMMIT_SHA,
+            "getAssetName"
+          );
+          return matches[1].trim();
+        }
       }
+
+      logger_logger.withInfo(
+        `Using filename as asset name: ${fileName}`,
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "getAssetName"
+      );
+
+      return fileName;
+    } catch (error) {
+      logger_logger.withError(
+        `Error getting asset name - ${error.message}`,
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "getAssetName"
+      );
+      throw error;
     }
-
-    logger_logger.logDebug(`Using filename as asset name: ${fileName}`);
-
-    return fileName;
   }
 
   async getFileContents({ gitlab, filePath, headSHA }) {
-    logger_logger.logInfo("Fetching file contents...");
+    try {
+      logger_logger.withInfo(
+        "Fetching file contents...",
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "getFileContents"
+      );
 
-    const { content } = await gitlab.RepositoryFiles.show(
-      CI_PROJECT_PATH,
-      filePath,
-      headSHA
-    );
-    const buff = Buffer.from(content, "base64");
+      const { content } = await gitlab.RepositoryFiles.show(
+        CI_PROJECT_PATH,
+        filePath,
+        headSHA
+      );
+      const buff = Buffer.from(content, "base64");
 
-    logger_logger.logInfo("Successfully fetched file contents");
+      logger_logger.withInfo(
+        "Successfully fetched file contents",
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "getFileContents"
+      );
 
-    return buff.toString("utf8");
+      return buff.toString("utf8");
+    } catch (error) {
+      logger_logger.withError(
+        `Error in getFileContents: ${error.message}`,
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "getFileContents"
+      );
+      throw error;
+    }
   }
 
   async checkCommentExists({ gitlab }) {
-    logger_logger.logInfo("Checking for existing comments...");
-
-    if (IS_DEV) return null;
-
-    const comments = await gitlab.MergeRequestNotes.all(
-      CI_PROJECT_PATH,
-      CI_MERGE_REQUEST_IID
+    logger_logger.withInfo(
+      "Checking for existing comments...",
+      gitlab_integration_integrationName,
+      CI_COMMIT_SHA,
+      "checkCommentExists"
     );
 
-    const identifier = `project_${CI_PROJECT_ID}_bot_`;
+    if (IS_DEV) {
+      logger_logger.withInfo(
+        "Development mode enabled. Skipping comment check.",
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "checkCommentExists"
+      );
+      return null;
+    }
 
-    return comments.find(
-      (comment) =>
-        comment.author.username.includes(identifier) &&
-        comment.body.includes(
-          "<!-- ActionCommentIdentifier: atlan-dbt-action -->"
-        )
-    );
+    try {
+      const comments = await gitlab.MergeRequestNotes.all(
+        CI_PROJECT_PATH,
+        CI_MERGE_REQUEST_IID
+      );
+
+      const identifier = `project_${CI_PROJECT_ID}_bot_`;
+
+      const existingComment = comments.find(
+        (comment) =>
+          comment.author.username.includes(identifier) &&
+          comment.body.includes(
+            "<!-- ActionCommentIdentifier: atlan-dbt-action -->"
+          )
+      );
+      if (existingComment) {
+        logger_logger.withInfo(
+          "Found existing comment: " + existingComment?.id,
+          gitlab_integration_integrationName,
+          CI_COMMIT_SHA,
+          "checkCommentExists"
+        );
+      } else {
+        logger_logger.withInfo(
+          "No existing comment found",
+          gitlab_integration_integrationName,
+          CI_COMMIT_SHA,
+          "checkCommentExists"
+        );
+      }
+
+      return existingComment;
+    } catch (error) {
+      logger_logger.withError(
+        "Error checking for existing comments: " + error.message,
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "checkCommentExists"
+      );
+      throw error;
+    }
   }
 
   async deleteComment({ gitlab, comment_id }) {
-    logger_logger.logInfo("Deleting the comment...");
+    logger_logger.withInfo(
+      `Deleted comment with ID ${comment_id}`,
+      gitlab_integration_integrationName,
+      CI_COMMIT_SHA,
+      "deleteComment"
+    );
 
     return await gitlab.MergeRequestNotes.remove(
       CI_PROJECT_PATH,
@@ -34586,135 +34914,148 @@ ${content}`;
     classifications,
     materialisedAsset,
   }) {
-    logger_logger.logInfo("Rendering Downstream Assets...");
-
-    let impactedData = downstreamAssets.entities.map(
-      ({
-        displayText,
-        guid,
-        typeName,
-        attributes,
-        meanings,
-        classificationNames,
-      }) => {
-        // Modifying the typeName and getting the readableTypeName
-        let readableTypeName = typeName
-          .toLowerCase()
-          .replace(attributes.connectorName, "")
-          .toUpperCase();
-
-        // Filtering classifications based on classificationNames
-        let classificationsObj = classifications.filter(({ name }) =>
-          classificationNames.includes(name)
-        );
-
-        // Modifying the readableTypeName
-        readableTypeName =
-          readableTypeName.charAt(0).toUpperCase() +
-          readableTypeName.slice(1).toLowerCase();
-
-        return [
-          guid,
-          truncate(displayText),
-          truncate(attributes.connectorName),
-          truncate(readableTypeName),
-          truncate(
-            attributes?.userDescription || attributes?.description || ""
-          ),
-          attributes?.certificateStatus || "",
-          truncate(
-            [...attributes?.ownerUsers, ...attributes?.ownerGroups] || []
-          ),
-          truncate(
-            meanings.map(
-              ({ displayText, termGuid }) =>
-                `[${displayText}](${ATLAN_INSTANCE_URL}/assets/${termGuid}/overview?utm_source=dbt_gitlab_action)`
-            )
-          ),
-          truncate(
-            classificationsObj?.map(
-              ({ name, displayName }) => `\`${displayName}\``
-            )
-          ),
-          attributes?.sourceURL || "",
-        ];
-      }
+    logger_logger.withInfo(
+      "Rendering Downstream Assets...",
+      gitlab_integration_integrationName,
+      CI_COMMIT_SHA,
+      "renderDownstreamAssetsComment"
     );
 
-    logger_logger.logDebug(`Impacted data is as follows: ${impactedData}`);
+    try {
+      let impactedData = downstreamAssets.entities.map(
+        ({
+          displayText,
+          guid,
+          typeName,
+          attributes,
+          meanings,
+          classificationNames,
+        }) => {
+          // Modifying the typeName and getting the readableTypeName
+          let readableTypeName = typeName
+            .toLowerCase()
+            .replace(attributes.connectorName, "")
+            .toUpperCase();
 
-    // Sorting the impactedData first by typeName and then by connectorName
-    impactedData = impactedData.sort((a, b) => a[3].localeCompare(b[3]));
-    impactedData = impactedData.sort((a, b) => a[2].localeCompare(b[2]));
+          // Filtering classifications based on classificationNames
+          let classificationsObj = classifications.filter(({ name }) =>
+            classificationNames.includes(name)
+          );
 
-    // Creating rows for the downstream table
-    let rows = impactedData.map(
-      ([
-        guid,
-        displayText,
-        connectorName,
-        typeName,
-        description,
-        certificateStatus,
-        owners,
-        meanings,
-        classifications,
-        sourceUrl,
-      ]) => {
-        // Getting connector and certification images
-        const connectorImage = getConnectorImage(connectorName);
-        const certificationImage = certificateStatus
-          ? getCertificationImage(certificateStatus)
-          : "";
+          // Modifying the readableTypeName
+          readableTypeName =
+            readableTypeName.charAt(0).toUpperCase() +
+            readableTypeName.slice(1).toLowerCase();
 
-        return [
-          `${connectorImage} [${displayText}](${ATLAN_INSTANCE_URL}/assets/${guid}/overview?utm_source=dbt_gitlab_action) ${certificationImage}`,
-          `\`${typeName}\``,
+          return [
+            guid,
+            truncate(displayText),
+            truncate(attributes.connectorName),
+            truncate(readableTypeName),
+            truncate(
+              attributes?.userDescription || attributes?.description || ""
+            ),
+            attributes?.certificateStatus || "",
+            truncate(
+              [...attributes?.ownerUsers, ...attributes?.ownerGroups] || []
+            ),
+            truncate(
+              meanings.map(
+                ({ displayText, termGuid }) =>
+                  `[${displayText}](${ATLAN_INSTANCE_URL}/assets/${termGuid}/overview?utm_source=dbt_gitlab_action)`
+              )
+            ),
+            truncate(
+              classificationsObj?.map(
+                ({ name, displayName }) => `\`${displayName}\``
+              )
+            ),
+            attributes?.sourceURL || "",
+          ];
+        }
+      );
+
+      // Sorting the impactedData first by typeName and then by connectorName
+      impactedData = impactedData.sort((a, b) => a[3].localeCompare(b[3]));
+      impactedData = impactedData.sort((a, b) => a[2].localeCompare(b[2]));
+
+      // Creating rows for the downstream table
+      let rows = impactedData.map(
+        ([
+          guid,
+          displayText,
+          connectorName,
+          typeName,
           description,
+          certificateStatus,
           owners,
           meanings,
           classifications,
-          sourceUrl ? `[Open in ${connectorName}](${sourceUrl})` : " ",
-        ];
-      }
-    );
+          sourceUrl,
+        ]) => {
+          // Getting connector and certification images
+          const connectorImage = getConnectorImage(connectorName);
+          const certificationImage = certificateStatus
+            ? getCertificationImage(certificateStatus)
+            : "";
 
-    const environmentName =
-      materialisedAsset?.attributes?.assetDbtEnvironmentName;
-    const projectName = materialisedAsset?.attributes?.assetDbtProjectName;
-    // Generating asset information
-    const assetInfo = gitlab_integration_getAssetInfo(
-      ATLAN_INSTANCE_URL,
-      asset,
-      materialisedAsset,
-      environmentName,
-      projectName
-    );
+          return [
+            `${connectorImage} [${displayText}](${ATLAN_INSTANCE_URL}/assets/${guid}/overview?utm_source=dbt_gitlab_action) ${certificationImage}`,
+            `\`${typeName}\``,
+            description,
+            owners,
+            meanings,
+            classifications,
+            sourceUrl ? `[Open in ${connectorName}](${sourceUrl})` : " ",
+          ];
+        }
+      );
 
-    // Generating the downstream table
-    const downstreamTable = gitlab_integration_getDownstreamTable(
-      ATLAN_INSTANCE_URL,
-      downstreamAssets,
-      rows,
-      materialisedAsset
-    );
+      const environmentName =
+        materialisedAsset?.attributes?.assetDbtEnvironmentName;
+      const projectName = materialisedAsset?.attributes?.assetDbtProjectName;
+      // Generating asset information
+      const assetInfo = gitlab_integration_getAssetInfo(
+        ATLAN_INSTANCE_URL,
+        asset,
+        materialisedAsset,
+        environmentName,
+        projectName
+      );
 
-    // Generating the "View asset in Atlan" button
-    const viewAssetButton = gitlab_integration_getViewAssetButton(ATLAN_INSTANCE_URL, asset);
+      // Generating the downstream table
+      const downstreamTable = gitlab_integration_getDownstreamTable(
+        ATLAN_INSTANCE_URL,
+        downstreamAssets,
+        rows,
+        materialisedAsset
+      );
 
-    // Generating the final comment based on the presence of downstream assets
-    if (downstreamAssets.entities.length > 0) {
-      return `${assetInfo}
+      // Generating the "View asset in Atlan" button
+      const viewAssetButton = gitlab_integration_getViewAssetButton(ATLAN_INSTANCE_URL, asset);
+
+      // Generating the final comment based on the presence of downstream assets
+      if (downstreamAssets.entities.length > 0) {
+        return `${assetInfo}
 
 ${downstreamTable}
 
 ${viewAssetButton}`;
-    } else {
-      return `${assetInfo}
+      } else {
+        return `${assetInfo}
 
 No downstream assets found.
 
 ${viewAssetButton}`;
+      }
+    } catch (error) {
+      logger_logger.withError(
+        `Error rendering Downstream Assets: ${error.message}`,
+        gitlab_integration_integrationName,
+        CI_COMMIT_SHA,
+        "renderDownstreamAssetsComment"
+      );
+      throw error;
     }
   }
 }

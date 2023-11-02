@@ -46,6 +46,7 @@ export const {
   GITLAB_USER_LOGIN,
   CI_PROJECT_NAME,
   CI_COMMIT_SHA,
+  CI_PROJECT_NAMESPACE,
 } = process.env;
 
 export function getGitLabEnvironments() {
