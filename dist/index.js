@@ -26163,7 +26163,7 @@ class GitHubIntegration extends IntegrationInterface {
         var matches = regExp.exec(fileContents);
         if (matches) {
           logger_logger.withInfo(
-            `Matched alias name: ${aliasName}`,
+            `Found a match: ${matches[1].trim()}`,
             integrationName,
             headSHA,
             "getAssetName"
