@@ -41,6 +41,7 @@ import {
   CI_COMMIT_SHA,
   getCIMergeRequestIID,
 } from "../utils/get-environment-variables.js";
+import logger from "../logger/logger.js";
 
 var CI_MERGE_REQUEST_IID;
 
@@ -50,6 +51,8 @@ export default class GitLabIntegration extends IntegrationInterface {
   }
 
   async run() {
+    logger.logInfo("Starting the GitLab integration...");
+
     const timeStart = Date.now();
     const gitlab = new Gitlab({
       host: "https://gitlab.com",
@@ -67,8 +70,10 @@ export default class GitLabIntegration extends IntegrationInterface {
       CI_COMMIT_SHA
     );
 
-    if (!(await this.authIntegration({ gitlab })))
+    if (!(await this.authIntegration({ gitlab }))) {
+      logger.logError("Authentication failed. Wrong API Token.");
       throw { message: "Wrong API Token" };
+    }
 
     let total_assets = 0;
 
@@ -105,9 +110,13 @@ export default class GitLabIntegration extends IntegrationInterface {
           total_time: Date.now() - timeStart,
         },
       });
+
+    logger.logInfo("Successfully Completed DBT_CI_PIPELINE");
   }
 
   async printDownstreamAssets({ gitlab, target_branch, diff_refs }) {
+    logger.logInfo("Printing downstream assets...");
+
     const changedFiles = await this.getChangedFiles({ gitlab, diff_refs });
 
     let comments = ``;
@@ -132,6 +141,8 @@ export default class GitLabIntegration extends IntegrationInterface {
         }
       }
 
+      logger.logDebug(`Processing asset: ${assetName}`);
+
       const asset = await getAsset({
         name: assetName,
         sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
@@ -148,6 +159,7 @@ export default class GitLabIntegration extends IntegrationInterface {
       }
 
       if (asset.error) {
+        logger.logError(`Asset error: ${asset.error}`);
         comments += asset.error;
         totalChangedFiles++;
         continue;
@@ -171,6 +183,7 @@ export default class GitLabIntegration extends IntegrationInterface {
       );
 
       if (downstreamAssets.error) {
+        logger.logError(`Downstream assets error: ${downstreamAssets.error}`);
         comments += downstreamAssets.error;
         totalChangedFiles++;
         continue;
@@ -216,10 +229,14 @@ export default class GitLabIntegration extends IntegrationInterface {
     if (totalChangedFiles === 0 && existingComment)
       await this.deleteComment({ gitlab, comment_id: existingComment?.id });
 
+    logger.logInfo("Successfully printed Downstream Assets");
+
     return totalChangedFiles;
   }
 
   async setResourceOnAsset({ gitlab, web_url, target_branch, diff_refs }) {
+    logger.logInfo("Setting resources on assets...");
+
     const changedFiles = await this.getChangedFiles({ gitlab, diff_refs });
 
     var totalChangedFiles = 0;
@@ -247,6 +264,8 @@ export default class GitLabIntegration extends IntegrationInterface {
         }
       }
 
+      logger.logDebug(`Processing asset: ${assetName}`);
+
       const asset = await getAsset({
         name: assetName,
         sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
@@ -254,7 +273,10 @@ export default class GitLabIntegration extends IntegrationInterface {
         integration: "gitlab",
       });
 
-      if (asset.error) continue;
+      if (asset.error) {
+        logger.logError(`Asset error: ${asset.error}`);
+        continue;
+      }
 
       const materialisedAsset = asset?.attributes?.dbtModelSqlAssets?.[0];
       const timeStart = Date.now();
@@ -274,7 +296,7 @@ export default class GitLabIntegration extends IntegrationInterface {
       );
 
       if (downstreamAssets.error) {
-        console.log(downstreamAssets.error);
+        logger.logError(`Downstream assets error: ${downstreamAssets.error}`);
         continue;
       }
 
@@ -335,15 +357,20 @@ export default class GitLabIntegration extends IntegrationInterface {
       forceNewComment: true,
     });
 
+    logger.logInfo("Successfully set the resource on the asset");
+
     return totalChangedFiles;
   }
 
   async authIntegration({ gitlab }) {
+    logger.logInfo("Authenticating with atlan....");
+
     const response = await auth();
 
     const existingComment = await this.checkCommentExists({ gitlab });
 
     if (response?.status === 401) {
+      logger.logError("Authentication failed: Status 401");
       await this.createIssueComment({
         gitlab,
         content: getErrorResponseStatus401(
@@ -357,6 +384,7 @@ export default class GitLabIntegration extends IntegrationInterface {
     }
 
     if (response === undefined) {
+      logger.logError("Authentication failed: Undefined response");
       await this.createIssueComment({
         gitlab,
         content: getErrorResponseStatusUndefined(
@@ -368,7 +396,7 @@ export default class GitLabIntegration extends IntegrationInterface {
       });
       return false;
     }
-
+    logger.logInfo("Successfully Authenticated with Atlan");
     return true;
   }
 
@@ -378,6 +406,8 @@ export default class GitLabIntegration extends IntegrationInterface {
     comment_id = null,
     forceNewComment = false,
   }) {
+    logger.logInfo("Creating an issue comment...");
+
     content = `<!-- ActionCommentIdentifier: atlan-dbt-action -->
 ${content}`;
 
@@ -419,6 +449,8 @@ ${content}`;
   }
 
   async getChangedFiles({ gitlab, diff_refs }) {
+    logger.logInfo("Fetching changed files...");
+
     var changes = await gitlab.MergeRequests.allDiffs(
       CI_PROJECT_PATH,
       CI_MERGE_REQUEST_IID
@@ -470,10 +502,14 @@ ${content}`;
       );
     });
 
+    logger.logInfo("Successfully fetched changed files");
+
     return changedFiles;
   }
 
   async getAssetName({ gitlab, fileName, filePath, headSHA }) {
+    logger.logInfo("Getting asset name...");
+
     var regExp =
       /{{\s*config\s*\(\s*(?:[^,]*,)*\s*alias\s*=\s*['"]([^'"]+)['"](?:\s*,[^,]*)*\s*\)\s*}}/im;
     var fileContents = await this.getFileContents({
@@ -482,16 +518,22 @@ ${content}`;
       headSHA,
     });
 
-    var matches = regExp.exec(fileContents);
-
-    if (matches) {
-      return matches[1];
+    if (fileContents) {
+      var matches = regExp.exec(fileContents);
+      if (matches) {
+        logger.logDebug(`Matched alias name: ${matches[1].trim()}`);
+        return matches[1].trim();
+      }
     }
+
+    logger.logDebug(`Using filename as asset name: ${fileName}`);
 
     return fileName;
   }
 
   async getFileContents({ gitlab, filePath, headSHA }) {
+    logger.logInfo("Fetching file contents...");
+
     const { content } = await gitlab.RepositoryFiles.show(
       CI_PROJECT_PATH,
       filePath,
@@ -499,10 +541,14 @@ ${content}`;
     );
     const buff = Buffer.from(content, "base64");
 
+    logger.logInfo("Successfully fetched file contents");
+
     return buff.toString("utf8");
   }
 
   async checkCommentExists({ gitlab }) {
+    logger.logInfo("Checking for existing comments...");
+
     if (IS_DEV) return null;
 
     const comments = await gitlab.MergeRequestNotes.all(
@@ -522,6 +568,8 @@ ${content}`;
   }
 
   async deleteComment({ gitlab, comment_id }) {
+    logger.logInfo("Deleting the comment...");
+
     return await gitlab.MergeRequestNotes.remove(
       CI_PROJECT_PATH,
       CI_MERGE_REQUEST_IID,
@@ -535,6 +583,8 @@ ${content}`;
     classifications,
     materialisedAsset,
   }) {
+    logger.logInfo("Rendering Downstream Assets...");
+
     let impactedData = downstreamAssets.entities.map(
       ({
         displayText,
@@ -587,6 +637,8 @@ ${content}`;
         ];
       }
     );
+
+    logger.logDebug(`Impacted data is as follows: ${impactedData}`);
 
     // Sorting the impactedData first by typeName and then by connectorName
     impactedData = impactedData.sort((a, b) => a[3].localeCompare(b[3]));

@@ -25446,6 +25446,39 @@ function getMDCommentForMaterialisedView(ATLAN_INSTANCE_URL, materialisedView) {
 function getTableMD(md, resp) {
     return `${md} | ${resp ? '✅' : '❌'} \n`
 }
+;// CONCATENATED MODULE: ./adapters/logger/logger.js
+// logger.js
+
+// logger.js
+
+function getCurrentTimestamp() {
+  const now = new Date();
+  return now.toISOString();
+}
+
+function logInfo(message) {
+  const timestamp = getCurrentTimestamp();
+  console.log(`[INFO][${timestamp}] ${message}`);
+}
+
+function logError(message) {
+  const timestamp = getCurrentTimestamp();
+  console.error(`[ERROR][${timestamp}] ${message}`);
+}
+
+function logDebug(message) {
+  const timestamp = getCurrentTimestamp();
+  console.debug(`[DEBUG][${timestamp}] ${message}`);
+}
+
+const logger = {
+  logInfo,
+  logError,
+  logDebug,
+};
+
+/* harmony default export */ const logger_logger = (logger);
+
 ;// CONCATENATED MODULE: ./adapters/integrations/github-integration.js
 // githubIntegration.js
 
@@ -25463,13 +25496,18 @@ class GitHubIntegration extends IntegrationInterface {
   }
 
   async run() {
+    logger_logger.logInfo("Starting the GitHub integration...");
+
     const timeStart = Date.now();
     const { context } = github;
     const octokit = github.getOctokit(this.token);
     const { pull_request } = context?.payload;
     const { state, merged } = pull_request;
 
+    logger_logger.logDebug(`Current state: ${state}, merged: ${merged}`);
+
     if (!(await this.authIntegration({ octokit, context }))) {
+      logger_logger.logError("Authentication failed. Wrong API Token.");
       throw { message: "Wrong API Token" };
     }
 
@@ -25490,9 +25528,13 @@ class GitHubIntegration extends IntegrationInterface {
         },
       });
     }
+
+    logger_logger.logInfo("Successfully Completed DBT_CI_ACTION");
   }
 
   async printDownstreamAssets({ octokit, context }) {
+    logger_logger.logInfo("Printing downstream assets...");
+
     const changedFiles = await this.getChangedFiles({ octokit, context });
     let comments = ``;
     let totalChangedFiles = 0;
@@ -25514,6 +25556,9 @@ class GitHubIntegration extends IntegrationInterface {
           break;
         }
       }
+
+      logger_logger.logDebug(`Processing asset: ${assetName}`);
+
       const asset = await getAsset({
         name: assetName,
         sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
@@ -25530,6 +25575,7 @@ class GitHubIntegration extends IntegrationInterface {
       }
 
       if (asset.error) {
+        logger_logger.logError(`Asset error: ${asset.error}`);
         comments += asset.error;
         totalChangedFiles++;
         continue;
@@ -25551,6 +25597,7 @@ class GitHubIntegration extends IntegrationInterface {
       );
 
       if (downstreamAssets.error) {
+        logger_logger.logError(`Downstream assets error: ${downstreamAssets.error}`);
         comments += downstreamAssets.error;
         totalChangedFiles++;
         continue;
@@ -25603,10 +25650,14 @@ class GitHubIntegration extends IntegrationInterface {
         comment_id: existingComment?.id,
       });
 
+    logger_logger.logInfo("Successfully printed Downstream Assets");
+
     return totalChangedFiles;
   }
 
   async setResourceOnAsset({ octokit, context }) {
+    logger_logger.logInfo("Setting resources on assets...");
+
     const changedFiles = await this.getChangedFiles({ octokit, context });
     const { pull_request } = context.payload;
     var totalChangedFiles = 0;
@@ -25634,6 +25685,8 @@ class GitHubIntegration extends IntegrationInterface {
         }
       }
 
+      logger_logger.logDebug(`Processing asset: ${assetName}`);
+
       const asset = await getAsset({
         name: assetName,
         sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
@@ -25642,6 +25695,7 @@ class GitHubIntegration extends IntegrationInterface {
       });
 
       if (asset.error) {
+        logger_logger.logError(`Asset error: ${asset.error}`);
         continue;
       }
 
@@ -25661,7 +25715,7 @@ class GitHubIntegration extends IntegrationInterface {
       );
 
       if (downstreamAssets.error) {
-        console.log(downstreamAssets.error);
+        logger_logger.logError(`Downstream assets error: ${downstreamAssets.error}`);
         continue;
       }
 
@@ -25721,15 +25775,20 @@ class GitHubIntegration extends IntegrationInterface {
       forceNewComment: true,
     });
 
+    logger_logger.logInfo("Successfully set the resource on the asset");
+
     return totalChangedFiles;
   }
 
   async authIntegration({ octokit, context }) {
+    logger_logger.logInfo("Authenticating with atlan....");
+
     const response = await auth();
 
     const existingComment = await this.checkCommentExists({ octokit, context });
 
     if (response?.status === 401) {
+      logger_logger.logError("Authentication failed: Status 401");
       await this.createIssueComment({
         octokit,
         context,
@@ -25740,6 +25799,7 @@ class GitHubIntegration extends IntegrationInterface {
     }
 
     if (response === undefined) {
+      logger_logger.logError("Authentication failed: Undefined response");
       await this.createIssueComment({
         octokit,
         context,
@@ -25748,13 +25808,13 @@ class GitHubIntegration extends IntegrationInterface {
       });
       return false;
     }
-
+    logger_logger.logInfo("Successfully Authenticated with Atlan");
     return true;
   }
 
   async sendSegmentEventOfIntegration({ action, properties }) {
     const domain = new URL(ATLAN_INSTANCE_URL).hostname;
-
+    const { context } = github; //confirm this
     const raw = stringify({
       category: "integration",
       object: "github",
@@ -25762,8 +25822,7 @@ class GitHubIntegration extends IntegrationInterface {
       userId: "atlan-annonymous-github",
       properties: {
         ...properties,
-        //get context for this
-        // github_action_id: `https://github.com/${context.payload.repository.full_name}/actions/runs/${context.runId}`,
+        github_action_id: `https://github.com/${context?.payload?.repository?.full_name}/actions/runs/${context?.runId}`,
         domain,
       },
     });
@@ -25772,6 +25831,8 @@ class GitHubIntegration extends IntegrationInterface {
   }
 
   async getChangedFiles({ octokit, context }) {
+    logger_logger.logInfo("Fetching changed files...");
+
     const { repository, pull_request } = context.payload,
       owner = repository.owner.login,
       repo = repository.name,
@@ -25813,10 +25874,14 @@ class GitHubIntegration extends IntegrationInterface {
       );
     });
 
+    logger_logger.logInfo("Successfully fetched changed files");
+
     return changedFiles;
   }
 
   async getAssetName({ octokit, context, fileName, filePath }) {
+    logger_logger.logInfo("Getting asset name...");
+
     var regExp =
       /{{\s*config\s*\(\s*(?:[^,]*,)*\s*alias\s*=\s*['"]([^'"]+)['"](?:\s*,[^,]*)*\s*\)\s*}}/im;
     var fileContents = await this.getFileContents({
@@ -25828,14 +25893,19 @@ class GitHubIntegration extends IntegrationInterface {
     if (fileContents) {
       var matches = regExp.exec(fileContents);
       if (matches) {
+        logger_logger.logDebug(`Matched alias name: ${matches[1].trim()}`);
         return matches[1].trim();
       }
     }
+
+    logger_logger.logDebug(`Using filename as asset name: ${fileName}`);
 
     return fileName;
   }
 
   async getFileContents({ octokit, context, filePath }) {
+    logger_logger.logInfo("Fetching file contents...");
+
     const { repository, pull_request } = context.payload,
       owner = repository.owner.login,
       repo = repository.name,
@@ -25851,7 +25921,7 @@ class GitHubIntegration extends IntegrationInterface {
         }
       )
       .catch((e) => {
-        console.log("Error fetching file contents: ", e);
+        logger_logger.logError(`Error fetching file contents: ${e}`);
         return null;
       });
 
@@ -25859,10 +25929,14 @@ class GitHubIntegration extends IntegrationInterface {
 
     const buff = Buffer.from(res.data.content, "base64");
 
+    logger_logger.logInfo("Successfully fetched file contents");
+
     return buff.toString("utf8");
   }
 
   async checkCommentExists({ octokit, context }) {
+    logger_logger.logInfo("Checking for existing comments...");
+
     if (IS_DEV) return null;
 
     const { pull_request } = context.payload;
@@ -25888,6 +25962,7 @@ class GitHubIntegration extends IntegrationInterface {
     comment_id = null,
     forceNewComment = false,
   }) {
+    logger_logger.logInfo("Creating an issue comment...");
     const { pull_request } = context?.payload || {};
 
     content = `<!-- ActionCommentIdentifier: atlan-dbt-action -->
@@ -25907,6 +25982,8 @@ ${content}`;
   }
 
   async deleteComment({ octokit, context, comment_id }) {
+    logger_logger.logInfo("Deleting the comment...");
+
     const { pull_request } = context.payload;
 
     return octokit.rest.issues.deleteComment({
@@ -25924,6 +26001,8 @@ ${content}`;
     downstreamAssets,
     classifications,
   }) {
+    logger_logger.logInfo("Rendering Downstream Assets...");
+
     let impactedData = downstreamAssets.entities.map(
       ({
         displayText,
@@ -25976,6 +26055,8 @@ ${content}`;
         ];
       }
     );
+
+    logger_logger.logDebug(`Impacted data is as follows: ${impactedData}`);
 
     // Sorting the impactedData first by typeName and then by connectorName
     impactedData = impactedData.sort((a, b) => a[3].localeCompare(b[3]));
@@ -33580,6 +33661,7 @@ function gitlab_integration_getTableMD(md, resp) {
 
 
 
+
 var CI_MERGE_REQUEST_IID;
 
 class GitLabIntegration extends IntegrationInterface {
@@ -33588,6 +33670,8 @@ class GitLabIntegration extends IntegrationInterface {
   }
 
   async run() {
+    logger_logger.logInfo("Starting the GitLab integration...");
+
     const timeStart = Date.now();
     const gitlab = new dist_Gitlab({
       host: "https://gitlab.com",
@@ -33605,8 +33689,10 @@ class GitLabIntegration extends IntegrationInterface {
       CI_COMMIT_SHA
     );
 
-    if (!(await this.authIntegration({ gitlab })))
+    if (!(await this.authIntegration({ gitlab }))) {
+      logger_logger.logError("Authentication failed. Wrong API Token.");
       throw { message: "Wrong API Token" };
+    }
 
     let total_assets = 0;
 
@@ -33643,9 +33729,13 @@ class GitLabIntegration extends IntegrationInterface {
           total_time: Date.now() - timeStart,
         },
       });
+
+    logger_logger.logInfo("Successfully Completed DBT_CI_PIPELINE");
   }
 
   async printDownstreamAssets({ gitlab, target_branch, diff_refs }) {
+    logger_logger.logInfo("Printing downstream assets...");
+
     const changedFiles = await this.getChangedFiles({ gitlab, diff_refs });
 
     let comments = ``;
@@ -33670,6 +33760,8 @@ class GitLabIntegration extends IntegrationInterface {
         }
       }
 
+      logger_logger.logDebug(`Processing asset: ${assetName}`);
+
       const asset = await getAsset({
         name: assetName,
         sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
@@ -33686,6 +33778,7 @@ class GitLabIntegration extends IntegrationInterface {
       }
 
       if (asset.error) {
+        logger_logger.logError(`Asset error: ${asset.error}`);
         comments += asset.error;
         totalChangedFiles++;
         continue;
@@ -33709,6 +33802,7 @@ class GitLabIntegration extends IntegrationInterface {
       );
 
       if (downstreamAssets.error) {
+        logger_logger.logError(`Downstream assets error: ${downstreamAssets.error}`);
         comments += downstreamAssets.error;
         totalChangedFiles++;
         continue;
@@ -33754,10 +33848,14 @@ class GitLabIntegration extends IntegrationInterface {
     if (totalChangedFiles === 0 && existingComment)
       await this.deleteComment({ gitlab, comment_id: existingComment?.id });
 
+    logger_logger.logInfo("Successfully printed Downstream Assets");
+
     return totalChangedFiles;
   }
 
   async setResourceOnAsset({ gitlab, web_url, target_branch, diff_refs }) {
+    logger_logger.logInfo("Setting resources on assets...");
+
     const changedFiles = await this.getChangedFiles({ gitlab, diff_refs });
 
     var totalChangedFiles = 0;
@@ -33785,6 +33883,8 @@ class GitLabIntegration extends IntegrationInterface {
         }
       }
 
+      logger_logger.logDebug(`Processing asset: ${assetName}`);
+
       const asset = await getAsset({
         name: assetName,
         sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
@@ -33792,7 +33892,10 @@ class GitLabIntegration extends IntegrationInterface {
         integration: "gitlab",
       });
 
-      if (asset.error) continue;
+      if (asset.error) {
+        logger_logger.logError(`Asset error: ${asset.error}`);
+        continue;
+      }
 
       const materialisedAsset = asset?.attributes?.dbtModelSqlAssets?.[0];
       const timeStart = Date.now();
@@ -33812,7 +33915,7 @@ class GitLabIntegration extends IntegrationInterface {
       );
 
       if (downstreamAssets.error) {
-        console.log(downstreamAssets.error);
+        logger_logger.logError(`Downstream assets error: ${downstreamAssets.error}`);
         continue;
       }
 
@@ -33873,15 +33976,20 @@ class GitLabIntegration extends IntegrationInterface {
       forceNewComment: true,
     });
 
+    logger_logger.logInfo("Successfully set the resource on the asset");
+
     return totalChangedFiles;
   }
 
   async authIntegration({ gitlab }) {
+    logger_logger.logInfo("Authenticating with atlan....");
+
     const response = await auth();
 
     const existingComment = await this.checkCommentExists({ gitlab });
 
     if (response?.status === 401) {
+      logger_logger.logError("Authentication failed: Status 401");
       await this.createIssueComment({
         gitlab,
         content: gitlab_integration_getErrorResponseStatus401(
@@ -33895,6 +34003,7 @@ class GitLabIntegration extends IntegrationInterface {
     }
 
     if (response === undefined) {
+      logger_logger.logError("Authentication failed: Undefined response");
       await this.createIssueComment({
         gitlab,
         content: gitlab_integration_getErrorResponseStatusUndefined(
@@ -33906,7 +34015,7 @@ class GitLabIntegration extends IntegrationInterface {
       });
       return false;
     }
-
+    logger_logger.logInfo("Successfully Authenticated with Atlan");
     return true;
   }
 
@@ -33916,6 +34025,8 @@ class GitLabIntegration extends IntegrationInterface {
     comment_id = null,
     forceNewComment = false,
   }) {
+    logger_logger.logInfo("Creating an issue comment...");
+
     content = `<!-- ActionCommentIdentifier: atlan-dbt-action -->
 ${content}`;
 
@@ -33957,6 +34068,8 @@ ${content}`;
   }
 
   async getChangedFiles({ gitlab, diff_refs }) {
+    logger_logger.logInfo("Fetching changed files...");
+
     var changes = await gitlab.MergeRequests.allDiffs(
       CI_PROJECT_PATH,
       CI_MERGE_REQUEST_IID
@@ -34008,10 +34121,14 @@ ${content}`;
       );
     });
 
+    logger_logger.logInfo("Successfully fetched changed files");
+
     return changedFiles;
   }
 
   async getAssetName({ gitlab, fileName, filePath, headSHA }) {
+    logger_logger.logInfo("Getting asset name...");
+
     var regExp =
       /{{\s*config\s*\(\s*(?:[^,]*,)*\s*alias\s*=\s*['"]([^'"]+)['"](?:\s*,[^,]*)*\s*\)\s*}}/im;
     var fileContents = await this.getFileContents({
@@ -34020,16 +34137,22 @@ ${content}`;
       headSHA,
     });
 
-    var matches = regExp.exec(fileContents);
-
-    if (matches) {
-      return matches[1];
+    if (fileContents) {
+      var matches = regExp.exec(fileContents);
+      if (matches) {
+        logger_logger.logDebug(`Matched alias name: ${matches[1].trim()}`);
+        return matches[1].trim();
+      }
     }
+
+    logger_logger.logDebug(`Using filename as asset name: ${fileName}`);
 
     return fileName;
   }
 
   async getFileContents({ gitlab, filePath, headSHA }) {
+    logger_logger.logInfo("Fetching file contents...");
+
     const { content } = await gitlab.RepositoryFiles.show(
       CI_PROJECT_PATH,
       filePath,
@@ -34037,10 +34160,14 @@ ${content}`;
     );
     const buff = Buffer.from(content, "base64");
 
+    logger_logger.logInfo("Successfully fetched file contents");
+
     return buff.toString("utf8");
   }
 
   async checkCommentExists({ gitlab }) {
+    logger_logger.logInfo("Checking for existing comments...");
+
     if (IS_DEV) return null;
 
     const comments = await gitlab.MergeRequestNotes.all(
@@ -34060,6 +34187,8 @@ ${content}`;
   }
 
   async deleteComment({ gitlab, comment_id }) {
+    logger_logger.logInfo("Deleting the comment...");
+
     return await gitlab.MergeRequestNotes.remove(
       CI_PROJECT_PATH,
       CI_MERGE_REQUEST_IID,
@@ -34073,6 +34202,8 @@ ${content}`;
     classifications,
     materialisedAsset,
   }) {
+    logger_logger.logInfo("Rendering Downstream Assets...");
+
     let impactedData = downstreamAssets.entities.map(
       ({
         displayText,
@@ -34125,6 +34256,8 @@ ${content}`;
         ];
       }
     );
+
+    logger_logger.logDebug(`Impacted data is as follows: ${impactedData}`);
 
     // Sorting the impactedData first by typeName and then by connectorName
     impactedData = impactedData.sort((a, b) => a[3].localeCompare(b[3]));

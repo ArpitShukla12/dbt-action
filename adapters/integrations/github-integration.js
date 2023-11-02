@@ -33,20 +33,25 @@ import {
   ATLAN_INSTANCE_URL,
   IGNORE_MODEL_ALIAS_MATCHING,
 } from "../utils/get-environment-variables.js";
-
+import logger from "../logger/logger.js";
 export default class GitHubIntegration extends IntegrationInterface {
   constructor(token) {
     super(token);
   }
 
   async run() {
+    logger.logInfo("Starting the GitHub integration...");
+
     const timeStart = Date.now();
     const { context } = github;
     const octokit = github.getOctokit(this.token);
     const { pull_request } = context?.payload;
     const { state, merged } = pull_request;
 
+    logger.logDebug(`Current state: ${state}, merged: ${merged}`);
+
     if (!(await this.authIntegration({ octokit, context }))) {
+      logger.logError("Authentication failed. Wrong API Token.");
       throw { message: "Wrong API Token" };
     }
 
@@ -67,9 +72,13 @@ export default class GitHubIntegration extends IntegrationInterface {
         },
       });
     }
+
+    logger.logInfo("Successfully Completed DBT_CI_ACTION");
   }
 
   async printDownstreamAssets({ octokit, context }) {
+    logger.logInfo("Printing downstream assets...");
+
     const changedFiles = await this.getChangedFiles({ octokit, context });
     let comments = ``;
     let totalChangedFiles = 0;
@@ -91,6 +100,9 @@ export default class GitHubIntegration extends IntegrationInterface {
           break;
         }
       }
+
+      logger.logDebug(`Processing asset: ${assetName}`);
+
       const asset = await getAsset({
         name: assetName,
         sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
@@ -107,6 +119,7 @@ export default class GitHubIntegration extends IntegrationInterface {
       }
 
       if (asset.error) {
+        logger.logError(`Asset error: ${asset.error}`);
         comments += asset.error;
         totalChangedFiles++;
         continue;
@@ -128,6 +141,7 @@ export default class GitHubIntegration extends IntegrationInterface {
       );
 
       if (downstreamAssets.error) {
+        logger.logError(`Downstream assets error: ${downstreamAssets.error}`);
         comments += downstreamAssets.error;
         totalChangedFiles++;
         continue;
@@ -180,10 +194,14 @@ export default class GitHubIntegration extends IntegrationInterface {
         comment_id: existingComment?.id,
       });
 
+    logger.logInfo("Successfully printed Downstream Assets");
+
     return totalChangedFiles;
   }
 
   async setResourceOnAsset({ octokit, context }) {
+    logger.logInfo("Setting resources on assets...");
+
     const changedFiles = await this.getChangedFiles({ octokit, context });
     const { pull_request } = context.payload;
     var totalChangedFiles = 0;
@@ -211,6 +229,8 @@ export default class GitHubIntegration extends IntegrationInterface {
         }
       }
 
+      logger.logDebug(`Processing asset: ${assetName}`);
+
       const asset = await getAsset({
         name: assetName,
         sendSegmentEventOfIntegration: this.sendSegmentEventOfIntegration,
@@ -219,6 +239,7 @@ export default class GitHubIntegration extends IntegrationInterface {
       });
 
       if (asset.error) {
+        logger.logError(`Asset error: ${asset.error}`);
         continue;
       }
 
@@ -238,7 +259,7 @@ export default class GitHubIntegration extends IntegrationInterface {
       );
 
       if (downstreamAssets.error) {
-        console.log(downstreamAssets.error);
+        logger.logError(`Downstream assets error: ${downstreamAssets.error}`);
         continue;
       }
 
@@ -298,15 +319,20 @@ export default class GitHubIntegration extends IntegrationInterface {
       forceNewComment: true,
     });
 
+    logger.logInfo("Successfully set the resource on the asset");
+
     return totalChangedFiles;
   }
 
   async authIntegration({ octokit, context }) {
+    logger.logInfo("Authenticating with atlan....");
+
     const response = await auth();
 
     const existingComment = await this.checkCommentExists({ octokit, context });
 
     if (response?.status === 401) {
+      logger.logError("Authentication failed: Status 401");
       await this.createIssueComment({
         octokit,
         context,
@@ -317,6 +343,7 @@ export default class GitHubIntegration extends IntegrationInterface {
     }
 
     if (response === undefined) {
+      logger.logError("Authentication failed: Undefined response");
       await this.createIssueComment({
         octokit,
         context,
@@ -325,13 +352,13 @@ export default class GitHubIntegration extends IntegrationInterface {
       });
       return false;
     }
-
+    logger.logInfo("Successfully Authenticated with Atlan");
     return true;
   }
 
   async sendSegmentEventOfIntegration({ action, properties }) {
     const domain = new URL(ATLAN_INSTANCE_URL).hostname;
-
+    const { context } = github; //confirm this
     const raw = stringify({
       category: "integration",
       object: "github",
@@ -339,8 +366,7 @@ export default class GitHubIntegration extends IntegrationInterface {
       userId: "atlan-annonymous-github",
       properties: {
         ...properties,
-        //get context for this
-        // github_action_id: `https://github.com/${context.payload.repository.full_name}/actions/runs/${context.runId}`,
+        github_action_id: `https://github.com/${context?.payload?.repository?.full_name}/actions/runs/${context?.runId}`,
         domain,
       },
     });
@@ -349,6 +375,8 @@ export default class GitHubIntegration extends IntegrationInterface {
   }
 
   async getChangedFiles({ octokit, context }) {
+    logger.logInfo("Fetching changed files...");
+
     const { repository, pull_request } = context.payload,
       owner = repository.owner.login,
       repo = repository.name,
@@ -390,10 +418,14 @@ export default class GitHubIntegration extends IntegrationInterface {
       );
     });
 
+    logger.logInfo("Successfully fetched changed files");
+
     return changedFiles;
   }
 
   async getAssetName({ octokit, context, fileName, filePath }) {
+    logger.logInfo("Getting asset name...");
+
     var regExp =
       /{{\s*config\s*\(\s*(?:[^,]*,)*\s*alias\s*=\s*['"]([^'"]+)['"](?:\s*,[^,]*)*\s*\)\s*}}/im;
     var fileContents = await this.getFileContents({
@@ -405,14 +437,19 @@ export default class GitHubIntegration extends IntegrationInterface {
     if (fileContents) {
       var matches = regExp.exec(fileContents);
       if (matches) {
+        logger.logDebug(`Matched alias name: ${matches[1].trim()}`);
         return matches[1].trim();
       }
     }
+
+    logger.logDebug(`Using filename as asset name: ${fileName}`);
 
     return fileName;
   }
 
   async getFileContents({ octokit, context, filePath }) {
+    logger.logInfo("Fetching file contents...");
+
     const { repository, pull_request } = context.payload,
       owner = repository.owner.login,
       repo = repository.name,
@@ -428,7 +465,7 @@ export default class GitHubIntegration extends IntegrationInterface {
         }
       )
       .catch((e) => {
-        console.log("Error fetching file contents: ", e);
+        logger.logError(`Error fetching file contents: ${e}`);
         return null;
       });
 
@@ -436,10 +473,14 @@ export default class GitHubIntegration extends IntegrationInterface {
 
     const buff = Buffer.from(res.data.content, "base64");
 
+    logger.logInfo("Successfully fetched file contents");
+
     return buff.toString("utf8");
   }
 
   async checkCommentExists({ octokit, context }) {
+    logger.logInfo("Checking for existing comments...");
+
     if (IS_DEV) return null;
 
     const { pull_request } = context.payload;
@@ -465,6 +506,7 @@ export default class GitHubIntegration extends IntegrationInterface {
     comment_id = null,
     forceNewComment = false,
   }) {
+    logger.logInfo("Creating an issue comment...");
     const { pull_request } = context?.payload || {};
 
     content = `<!-- ActionCommentIdentifier: atlan-dbt-action -->
@@ -484,6 +526,8 @@ ${content}`;
   }
 
   async deleteComment({ octokit, context, comment_id }) {
+    logger.logInfo("Deleting the comment...");
+
     const { pull_request } = context.payload;
 
     return octokit.rest.issues.deleteComment({
@@ -501,6 +545,8 @@ ${content}`;
     downstreamAssets,
     classifications,
   }) {
+    logger.logInfo("Rendering Downstream Assets...");
+
     let impactedData = downstreamAssets.entities.map(
       ({
         displayText,
@@ -553,6 +599,8 @@ ${content}`;
         ];
       }
     );
+
+    logger.logDebug(`Impacted data is as follows: ${impactedData}`);
 
     // Sorting the impactedData first by typeName and then by connectorName
     impactedData = impactedData.sort((a, b) => a[3].localeCompare(b[3]));
