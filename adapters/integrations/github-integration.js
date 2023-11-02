@@ -236,12 +236,10 @@ export default class GitHubIntegration extends IntegrationInterface {
 
       comments = getBaseComment(totalChangedFiles, comments);
 
-      logger.withInfo(
-        `Existing Comment: ${existingComment?.id}`,
-        integrationName,
-        headSHA,
-        "printDownstreamAssets"
-      );
+      const existingComment = await this.checkCommentExists({
+        octokit,
+        context,
+      });
 
       logger.withInfo(
         `Existing Comment: ${existingComment?.id}`,
