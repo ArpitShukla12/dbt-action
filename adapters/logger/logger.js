@@ -1,31 +1,53 @@
 // logger.js
 
-// logger.js
-
 function getCurrentTimestamp() {
   const now = new Date();
   return now.toISOString();
 }
 
-function logInfo(message) {
+function withInfo(message, vcs, sha, method) {
   const timestamp = getCurrentTimestamp();
-  console.log(`[INFO][${timestamp}] ${message}`);
+  const logEntry = {
+    level: "INFO",
+    timestamp,
+    vcs,
+    sha,
+    method,
+    message,
+  };
+  console.log(logEntry);
 }
 
-function logError(message) {
+function withError(message, vcs, sha, method) {
   const timestamp = getCurrentTimestamp();
-  console.error(`[ERROR][${timestamp}] ${message}`);
+  const logEntry = {
+    level: "ERROR",
+    timestamp,
+    vcs,
+    sha,
+    method,
+    message,
+  };
+  console.error(logEntry);
 }
 
-function logDebug(message) {
+function debug(message, vcs, sha, method) {
   const timestamp = getCurrentTimestamp();
-  console.debug(`[DEBUG][${timestamp}] ${message}`);
+  const logEntry = {
+    level: "DEBUG",
+    timestamp,
+    vcs,
+    sha,
+    method,
+    message,
+  };
+  console.debug(logEntry);
 }
 
 const logger = {
-  logInfo,
-  logError,
-  logDebug,
+  withInfo,
+  withError,
+  debug,
 };
 
 export default logger;
