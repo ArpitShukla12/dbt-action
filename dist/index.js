@@ -25504,6 +25504,7 @@ class GitHubIntegration extends IntegrationInterface {
     const octokit = github.getOctokit(this.token);
     const { pull_request } = context?.payload;
     const { state, merged } = pull_request;
+    console.log(pull_request?.head);
 
     logger_logger.logDebug(`Current state: ${state}, merged: ${merged}`);
 
