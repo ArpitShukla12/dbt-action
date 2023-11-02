@@ -219,6 +219,8 @@ export default class GitLabIntegration extends IntegrationInterface {
 
     const existingComment = await this.checkCommentExists({ gitlab });
 
+    logger.logDebug(`Existing Comment: ${existingComment?.id}`);
+
     if (totalChangedFiles > 0)
       await this.createIssueComment({
         gitlab,
@@ -368,6 +370,8 @@ export default class GitLabIntegration extends IntegrationInterface {
     const response = await auth();
 
     const existingComment = await this.checkCommentExists({ gitlab });
+
+    logger.logDebug(`Existing Comment: ${existingComment?.id}`);
 
     if (response?.status === 401) {
       logger.logError("Authentication failed: Status 401");

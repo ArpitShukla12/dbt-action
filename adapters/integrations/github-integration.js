@@ -179,6 +179,8 @@ export default class GitHubIntegration extends IntegrationInterface {
 
     const existingComment = await this.checkCommentExists({ octokit, context });
 
+    logger.logDebug(`Existing Comment: ${existingComment?.id}`);
+
     if (totalChangedFiles > 0)
       await this.createIssueComment({
         octokit,
@@ -330,6 +332,8 @@ export default class GitHubIntegration extends IntegrationInterface {
     const response = await auth();
 
     const existingComment = await this.checkCommentExists({ octokit, context });
+
+    logger.logDebug(`Existing Comment: ${existingComment?.id}`);
 
     if (response?.status === 401) {
       logger.logError("Authentication failed: Status 401");

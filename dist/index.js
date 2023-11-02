@@ -25635,6 +25635,8 @@ class GitHubIntegration extends IntegrationInterface {
 
     const existingComment = await this.checkCommentExists({ octokit, context });
 
+    logger_logger.logDebug(`Existing Comment: ${existingComment?.id}`);
+
     if (totalChangedFiles > 0)
       await this.createIssueComment({
         octokit,
@@ -25786,6 +25788,8 @@ class GitHubIntegration extends IntegrationInterface {
     const response = await auth();
 
     const existingComment = await this.checkCommentExists({ octokit, context });
+
+    logger_logger.logDebug(`Existing Comment: ${existingComment?.id}`);
 
     if (response?.status === 401) {
       logger_logger.logError("Authentication failed: Status 401");
@@ -33838,6 +33842,8 @@ class GitLabIntegration extends IntegrationInterface {
 
     const existingComment = await this.checkCommentExists({ gitlab });
 
+    logger_logger.logDebug(`Existing Comment: ${existingComment?.id}`);
+
     if (totalChangedFiles > 0)
       await this.createIssueComment({
         gitlab,
@@ -33987,6 +33993,8 @@ class GitLabIntegration extends IntegrationInterface {
     const response = await auth();
 
     const existingComment = await this.checkCommentExists({ gitlab });
+
+    logger_logger.logDebug(`Existing Comment: ${existingComment?.id}`);
 
     if (response?.status === 401) {
       logger_logger.logError("Authentication failed: Status 401");
