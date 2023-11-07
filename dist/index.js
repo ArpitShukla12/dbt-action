@@ -22387,15 +22387,83 @@ __nccwpck_require__.d(core_dist_namespaceObject, {
   "Users": () => (Users)
 });
 
+;// CONCATENATED MODULE: ./adapters/logger/logger.js
+// logger.js
+
+function getCurrentTimestamp() {
+  const now = new Date();
+  return now.toISOString();
+}
+
+function print(message, method) {
+  const timestamp = getCurrentTimestamp();
+  const logEntry = {
+    level: "ERROR",
+    timestamp,
+    method,
+    message,
+  };
+  console.error(logEntry);
+}
+
+function withInfo(message, vcs, sha, method) {
+  const timestamp = getCurrentTimestamp();
+  const logEntry = {
+    level: "INFO",
+    timestamp,
+    vcs,
+    sha,
+    method,
+    message,
+  };
+  console.log(logEntry);
+}
+
+function withError(message, vcs, sha, method) {
+  const timestamp = getCurrentTimestamp();
+  const logEntry = {
+    level: "ERROR",
+    timestamp,
+    vcs,
+    sha,
+    method,
+    message,
+  };
+  console.error(logEntry);
+}
+
+function debug(message, vcs, sha, method) {
+  const timestamp = getCurrentTimestamp();
+  const logEntry = {
+    level: "DEBUG",
+    timestamp,
+    vcs,
+    sha,
+    method,
+    message,
+  };
+  console.debug(logEntry);
+}
+
+const logger = {
+  withInfo,
+  withError,
+  debug,
+  print,
+};
+
+/* harmony default export */ const logger_logger = (logger);
+
 ;// CONCATENATED MODULE: ./adapters/gateway.js
 // Common Gateway for all integrations
+
 async function runAction(token, integrationModule) {
   if (token === undefined) {
-    console.log("Token not provided.");
+    logger_logger.logInfo("Token not provided.", "runAction");
     return;
   }
   const integration = new integrationModule(token);
-  await integration.run(); // Add error part
+  await integration.run();
 }
 
 ;// CONCATENATED MODULE: ./adapters/integrations/contract/contract.js
@@ -25447,61 +25515,6 @@ function getMDCommentForMaterialisedView(ATLAN_INSTANCE_URL, materialisedView) {
 function getTableMD(md, resp) {
     return `${md} | ${resp ? '✅' : '❌'} \n`
 }
-;// CONCATENATED MODULE: ./adapters/logger/logger.js
-// logger.js
-
-function getCurrentTimestamp() {
-  const now = new Date();
-  return now.toISOString();
-}
-
-function withInfo(message, vcs, sha, method) {
-  const timestamp = getCurrentTimestamp();
-  const logEntry = {
-    level: "INFO",
-    timestamp,
-    vcs,
-    sha,
-    method,
-    message,
-  };
-  console.log(logEntry);
-}
-
-function withError(message, vcs, sha, method) {
-  const timestamp = getCurrentTimestamp();
-  const logEntry = {
-    level: "ERROR",
-    timestamp,
-    vcs,
-    sha,
-    method,
-    message,
-  };
-  console.error(logEntry);
-}
-
-function debug(message, vcs, sha, method) {
-  const timestamp = getCurrentTimestamp();
-  const logEntry = {
-    level: "DEBUG",
-    timestamp,
-    vcs,
-    sha,
-    method,
-    message,
-  };
-  console.debug(logEntry);
-}
-
-const logger = {
-  withInfo,
-  withError,
-  debug,
-};
-
-/* harmony default export */ const logger_logger = (logger);
-
 ;// CONCATENATED MODULE: ./adapters/integrations/github-integration.js
 // githubIntegration.js
 
@@ -35073,7 +35086,7 @@ async function run() {
   await runAction(GITLAB_TOKEN, GitLabIntegration);
 }
 
-run(); //add segment event over here
+run();
 
 })();
 

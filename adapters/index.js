@@ -13,4 +13,4 @@ async function run() {
   await runAction(GITLAB_TOKEN, GitLabIntegration);
 }
 
-run(); //add segment event over here
+run();

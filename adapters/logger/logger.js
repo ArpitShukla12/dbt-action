@@ -5,6 +5,17 @@ function getCurrentTimestamp() {
   return now.toISOString();
 }
 
+function print(message, method) {
+  const timestamp = getCurrentTimestamp();
+  const logEntry = {
+    level: "ERROR",
+    timestamp,
+    method,
+    message,
+  };
+  console.error(logEntry);
+}
+
 function withInfo(message, vcs, sha, method) {
   const timestamp = getCurrentTimestamp();
   const logEntry = {
@@ -48,6 +59,7 @@ const logger = {
   withInfo,
   withError,
   debug,
+  print,
 };
 
 export default logger;
