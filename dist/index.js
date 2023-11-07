@@ -22395,7 +22395,7 @@ function getCurrentTimestamp() {
   return now.toISOString();
 }
 
-function print(message, method) {
+function logInfo(message, method) {
   const timestamp = getCurrentTimestamp();
   const logEntry = {
     level: "ERROR",
@@ -22449,7 +22449,7 @@ const logger = {
   withInfo,
   withError,
   debug,
-  print,
+  logInfo,
 };
 
 /* harmony default export */ const logger_logger = (logger);
